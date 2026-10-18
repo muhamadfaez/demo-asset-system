@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "asset",
+  "name": "demo-asset-system",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-02",
   "compatibility_flags": ["nodejs_compat"],
@@ -11,8 +11,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "asset-management",
-      "database_id": "ecc38a80-84b4-4619-89ae-f0416d7dd1dd"
+      "database_name": "asset-management"
     }
   ],
   "observability": {

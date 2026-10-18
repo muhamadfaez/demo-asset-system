@@ -54,6 +54,20 @@ npm run db:seed
 
 The deployed app runs on Cloudflare Workers with OpenNext and uses the D1 binding in `wrangler.jsonc`. Store OAuth and Auth.js secrets as Worker secrets, never in source. Run `npm run deploy` after building and validating changes.
 
+### First deployment in a new Cloudflare account
+
+Use `npm run build` as the Workers Builds build command and `npx wrangler deploy` as the deploy command. The Worker name is `demo-asset-system`.
+
+The D1 binding intentionally omits `database_id` so Wrangler can provision `asset-management` in the deployment account. After the first successful deployment, copy the created database ID from the Cloudflare D1 dashboard into the `DB` entry in `wrangler.jsonc` and commit it to keep subsequent deployments pinned to that database.
+
+Before using the app, initialize the new, empty database with `prisma/baseline.sql`. With Wrangler logged into the deployment account and the database ID configured, run:
+
+```bash
+npx wrangler d1 execute asset-management --remote --file=prisma/baseline.sql
+```
+
+Alternatively, execute the contents of `prisma/baseline.sql` in the new database's D1 console. Apply this baseline only once to a new database. Configure `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the production `AUTH_URL` before signing in; the Google OAuth redirect URI is `<AUTH_URL>/api/auth/callback/google`.
+
 ### Demo records on D1
 
 To add ten sample assets and example workflow records to an existing D1 database, run:
