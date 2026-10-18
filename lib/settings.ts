@@ -22,6 +22,17 @@ export const getSystemSettings = cache(async (): Promise<SystemSettings> => {
   return { ...systemSettingDefaults, ...Object.fromEntries(rows.map((row) => [row.key, row.value])) };
 });
 
+// Public branding must remain available while a new database is being set up.
+// Authentication and protected routes still require a working database.
+export async function getLoginSettings(): Promise<SystemSettings> {
+  try {
+    return await getSystemSettings();
+  } catch (error) {
+    console.error("Unable to load login branding; check the D1 binding and apply prisma/baseline.sql to a new database.", error);
+    return { ...systemSettingDefaults };
+  }
+}
+
 export async function getSystemSetting<K extends SystemSettingKey>(key: K): Promise<string> {
   const row = await prisma.systemSetting.findUnique({ where: { key } });
   return row?.value ?? systemSettingDefaults[key];
