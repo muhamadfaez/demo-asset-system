@@ -2,6 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* A native control's intrinsic width must not become a card's minimum width.
+     Keep these defaults in the base layer so responsive grid/width utilities win. */
+  :where(form, fieldset, label),
+  :where(form) :where(.grid, .flex, section, fieldset, label),
+  :where(form) :where(.grid, .flex) > * {
+    min-width: 0;
+    min-inline-size: 0;
+  }
+
+  :where(form).grid,
+  :where(form) .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(
+        [type="range"]
+      ):not([type="color"]):not([type="button"]):not([type="submit"]):not(
+        [type="reset"]
+      ):not([type="image"]),
+    select,
+    textarea
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  /* Row filters keep their natural widths; flex utilities distribute remaining space. */
+  :where(form.flex, form .flex) > :where(input, select, textarea) {
+    width: auto;
+  }
+}
+
+/* Shared by every date/time picker, including dynamic asset fields.
+   appearance removes WebKit's intrinsic native bezel sizing; the picker remains native. */
+input:is(
+  [type="date"],
+  [type="datetime-local"],
+  [type="time"],
+  [type="month"],
+  [type="week"]
+) {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  min-height: 44px;
+  overflow: hidden;
+}
+
+input:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  )::-webkit-datetime-edit {
+  flex: 1 1 0%;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+input:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  )::-webkit-datetime-edit-fields-wrapper {
+  min-width: 0;
+  padding: 0;
+}
+
+input:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  )::-webkit-date-and-time-value {
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+}
+
+input:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  )::-webkit-calendar-picker-indicator {
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  input:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="time"],
+    [type="month"],
+    [type="week"]
+  ) {
+    font-size: 16px;
+  }
+}
+
 :root {
   color-scheme: light;
   --iium-turquoise: #00918e;
@@ -18,7 +135,14 @@ body {
   min-height: 100vh;
   background: var(--app-canvas);
   color: #17202a;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -93,15 +217,6 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.asset-audit-form input[type="date"] {
-  min-inline-size: 0;
-}
-
-.asset-audit-form input[type="date"]::-webkit-date-and-time-value {
-  text-align: left;
-  min-width: 0;
 }
 
 .asset-audit-form input[readonly] {
