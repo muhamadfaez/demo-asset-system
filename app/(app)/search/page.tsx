@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { searchWorkspace } from "@/lib/workspace-search";
 import { redirect } from "next/navigation";
 import { can } from "@/lib/permissions";
-import { navItems } from "@/lib/navigation";
+import { searchableNavItems } from "@/lib/navigation";
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const user = await getCurrentUser();
@@ -11,7 +11,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim().slice(0, 100) : "";
   const valid = q.length >= 2;
-  const pages = valid ? navItems.filter((item) => item.roles.includes(user.role) && item.label.toLowerCase().includes(q.toLowerCase())) : [];
+  const pages = valid ? searchableNavItems.filter((item) => item.roles.includes(user.role) && item.label.toLowerCase().includes(q.toLowerCase())) : [];
   const [assets, users, notifications] = await searchWorkspace(user, q);
   const count = pages.length + assets.length + users.length + notifications.length;
   return <div className="space-y-5">

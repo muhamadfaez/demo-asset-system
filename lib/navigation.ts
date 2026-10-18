@@ -20,8 +20,14 @@ export const navItems: NavItem[] = [
   { href: "/reports", label: "Reports", icon: FileBarChart, roles: ["SUPERADMIN", "ASSET_LIAISON"], section: "Insights" },
   { href: "/audit-logs", label: "Audit Logs", icon: ShieldCheck, roles: ["SUPERADMIN"], section: "Insights" },
   { href: "/users", label: "Users", icon: Users, roles: ["SUPERADMIN"], section: "Administration" },
-  { href: "/locations", label: "Locations", icon: MapPin, roles: ["SUPERADMIN"], section: "Administration" },
   { href: "/master-data", label: "Master Data", icon: Boxes, roles: ["SUPERADMIN"], section: "Administration" },
   { href: "/settings", label: "Settings", icon: Settings, roles: ["SUPERADMIN"], section: "Administration" }
+];
+
+// Nested destinations remain discoverable without duplicating sidebar entries.
+export const searchableNavItems: NavItem[] = [
+  ...navItems,
+  { href: "/master-data?tab=categories", label: "Asset Categories", icon: Boxes, roles: ["SUPERADMIN"], section: "Administration" },
+  { href: "/master-data?tab=locations", label: "Asset Location Setting", icon: MapPin, roles: ["SUPERADMIN"], section: "Administration" }
 ];
 
