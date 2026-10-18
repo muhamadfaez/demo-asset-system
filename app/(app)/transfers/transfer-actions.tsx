@@ -67,19 +67,19 @@ export function TransferRequestForm({ assets, rooms }: { assets: TransferAsset[]
           {assets.map((item) => <option key={item.id} value={item.id}>{item.tagNumber} — {item.name}</option>)}
         </select>
       </label>
-      {asset && <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs md:col-span-2 sm:grid-cols-2"><div><p className="text-slate-400">Current location</p><p className="mt-1 font-semibold text-slate-700">{asset.roomLabel}</p></div><div><p className="text-slate-400">Current custodian</p><p className="mt-1 font-semibold text-slate-700">{asset.assignedUser?.name ?? "Unassigned"}</p></div></div>}
+      {asset && <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs md:col-span-2 sm:grid-cols-2"><div><p className="text-slate-400">Current location</p><p className="mt-1 font-semibold text-slate-700">{asset.roomLabel}</p></div><div><p className="text-slate-400">Current assigned user</p><p className="mt-1 font-semibold text-slate-700">{asset.assignedUser?.name ?? "Unassigned"}</p></div></div>}
       <label className="grid gap-1.5 text-sm font-semibold text-slate-700 md:col-span-2">Transfer type
         <select value={transferType} onChange={(event) => setTransferType(event.target.value as typeof transferType)}>
           <option value="LOCATION">Location only</option>
-          <option value="CUSTODIAN">Custodian only</option>
-          <option value="BOTH">Location and custodian</option>
+          <option value="CUSTODIAN">Assigned user only</option>
+          <option value="BOTH">Location and assigned user</option>
         </select>
       </label>
       {changesLocation && <label className="grid gap-1.5 text-sm font-semibold text-slate-700 md:col-span-2">Destination room
         <select name="newRoomId" defaultValue="" required><option value="" disabled>Select destination building and room</option>{rooms.filter((room) => room.id !== asset?.roomId).map((room) => <option key={room.id} value={room.id}>{room.label}</option>)}</select>
       </label>}
-      {changesCustodian && <div className="md:col-span-2"><UserAutocomplete key={`${assetId}-${transferType}`} name="newCustodianId" label="New custodian" helperText="Search and select the active user who will receive custody of this asset." /></div>}
-      <label className="grid gap-1.5 text-sm font-semibold text-slate-700 md:col-span-2">Reason for transfer<textarea name="reason" rows={3} minLength={8} maxLength={1000} required placeholder="Explain why the location or custodian needs to change" /></label>
+      {changesCustodian && <div className="md:col-span-2"><UserAutocomplete key={`${assetId}-${transferType}`} name="newCustodianId" label="New assigned user" helperText="Search and select the active user who will use this asset. The accountable custodian is set separately in asset details." /></div>}
+      <label className="grid gap-1.5 text-sm font-semibold text-slate-700 md:col-span-2">Reason for transfer<textarea name="reason" rows={3} minLength={8} maxLength={1000} required placeholder="Explain why the location or assigned user needs to change" /></label>
       {message && <p className={`rounded-lg px-4 py-3 text-sm md:col-span-2 ${message.tone === "success" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`} role="status">{message.text}</p>}
       <button disabled={pending || !assetId} className="inline-flex items-center justify-center gap-2 rounded-lg bg-iium-green px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep disabled:opacity-60 md:col-span-2">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{pending ? "Submitting transfer..." : "Submit transfer request"}</button>
     </form>

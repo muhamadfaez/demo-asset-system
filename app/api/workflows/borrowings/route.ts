@@ -64,8 +64,8 @@ export async function PATCH(request: NextRequest) {
       where: { id: existing.id },
       data: { status, approvedById: body.decision === "approve" ? session.user.id : existing.approvedById, approvedAt: body.decision === "approve" ? new Date() : existing.approvedAt, rejectionReason: body.reason }
     });
-    if (body.decision === "checkout") await tx.asset.update({ where: { id: existing.assetId }, data: { status: AssetStatus.BORROWED } });
-    if (body.decision === "return") await tx.asset.update({ where: { id: existing.assetId }, data: { status: AssetStatus.AVAILABLE } });
+    if (body.decision === "checkout") await tx.asset.update({ where: { id: existing.assetId }, data: { status: AssetStatus.BORROWED, updatedById: session.user.id } });
+    if (body.decision === "return") await tx.asset.update({ where: { id: existing.assetId }, data: { status: existing.asset.assignedUserId ? AssetStatus.ASSIGNED : AssetStatus.AVAILABLE, updatedById: session.user.id } });
     return row;
   });
   const actionTitle = { approve: "Borrowing request approved", reject: "Borrowing request rejected", checkout: "Asset checked out", return: "Asset returned" }[body.decision];

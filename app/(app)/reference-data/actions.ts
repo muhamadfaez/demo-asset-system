@@ -8,7 +8,7 @@ import { audit } from "@/lib/audit";
 import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
-const kinds = ["category", "kulliyyah", "department", "unit", "campus", "building", "floor", "room"] as const;
+const kinds = ["supplier", "fundingSource", "category", "kulliyyah", "department", "unit", "campus", "building", "floor", "room"] as const;
 const codedKinds = new Set<string>(["kulliyyah", "department", "unit", "building", "room"]);
 const parentKinds = new Set<string>(["department", "unit", "building", "floor", "room"]);
 
@@ -36,6 +36,18 @@ export async function saveReferenceData(_: ReferenceActionState, formData: FormD
     let before: unknown = null;
     let after: { id: string };
     switch (kind) {
+      case "supplier": {
+        before = id ? await prisma.supplier.findUnique({ where: { id } }) : null;
+        if (id && !before) return missing();
+        after = id ? await prisma.supplier.update({ where: { id }, data: { name } }) : await prisma.supplier.create({ data: { name } });
+        break;
+      }
+      case "fundingSource": {
+        before = id ? await prisma.fundingSource.findUnique({ where: { id } }) : null;
+        if (id && !before) return missing();
+        after = id ? await prisma.fundingSource.update({ where: { id }, data: { name } }) : await prisma.fundingSource.create({ data: { name } });
+        break;
+      }
       case "category": {
         before = id ? await prisma.assetCategory.findUnique({ where: { id } }) : null;
         if (id && !before) return missing();

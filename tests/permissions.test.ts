@@ -88,7 +88,7 @@ describe("business rules", () => {
 
   it("accepts only a selected assignee database ID", () => {
     const base = { tagNumber: "KICT-99", name: "Test asset", acquisitionCost: "100", categoryId: "c1", departmentId: "d1", kulliyyahId: "k1", buildingId: "b1", roomId: "r1", condition: "GOOD", status: "AVAILABLE", borrowable: "true" };
-    const parsed = assetSchema.safeParse({ ...base, assignedUserId: "user-database-id" });
+    const parsed = assetSchema.safeParse({ ...base, status: "ASSIGNED", assignedUserId: "user-database-id" });
     expect(parsed.success && parsed.data.assignedUserId).toBe("user-database-id");
   });
 

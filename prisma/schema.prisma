@@ -123,6 +123,8 @@ model User {
   department     Department?   @relation(fields: [departmentId], references: [id])
   unit           Unit?         @relation(fields: [unitId], references: [id])
   assignedAssets Asset[]       @relation("AssignedUser")
+  custodyAssets Asset[] @relation("Custodian")
+  verifiedAssets Asset[] @relation("Verifier")
   liaisonAssets  Asset[]       @relation("LiaisonUser")
   assignments    AssetAssignment[] @relation("AssignmentUser")
   borrowings     BorrowingRequest[] @relation("Borrower")
@@ -255,9 +257,34 @@ model FundingSource {
   assets Asset[]
 }
 
+enum AssetType {
+  FIXED_ASSET
+  INVENTORY
+}
+
+enum VerificationResult {
+  FOUND
+  MISSING
+  WRONG_LOCATION
+  DAMAGED
+}
+
 model Asset {
   id                    String          @id @default(cuid())
   tagNumber             String          @unique
+  assetType AssetType @default(INVENTORY)
+  brandName String?
+  deliveryOrderNumber String?
+  receivedDate DateTime?
+  grantProjectCode String?
+  legacyRecordReason String?
+  serviceContract String?
+  supportVendor String?
+  custodianId String?
+  verifiedById String?
+  verificationResult VerificationResult?
+  custodian User? @relation("Custodian", fields: [custodianId], references: [id])
+  verifiedBy User? @relation("Verifier", fields: [verifiedById], references: [id])
   iiumReferenceNumber   String?
   name                  String
   description           String?
@@ -318,6 +345,8 @@ model Asset {
   incidents             AssetIncident[]
   disposals             DisposalRequest[]
 
+  @@index([purchaseOrderNumber])
+  @@index([acquisitionDate])
   @@index([status, condition])
   @@index([departmentId, roomId])
 }
@@ -334,6 +363,9 @@ model AssetImage {
 model AssetDocument {
   id        String   @id @default(cuid())
   assetId   String
+  typeLabel String @default("OTHER")
+  contentBase64 String?
+  uploadedById String?
   fileName  String
   fileUrl   String
   mimeType  String

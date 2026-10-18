@@ -31,8 +31,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
 }
 
 async function CategoryGroups() {
-  const categories = await prisma.assetCategory.findMany({ orderBy: { name: "asc" } });
+  const [categories,suppliers,fundingSources] = await Promise.all([prisma.assetCategory.findMany({ orderBy: { name: "asc" } }),prisma.supplier.findMany({orderBy:{name:"asc"}}),prisma.fundingSource.findMany({orderBy:{name:"asc"}})]);
   const groups: ReferenceGroup[] = [{ kind: "category", title: "Asset Categories", description: "Categories used when registering or editing assets.", items: categories.map((x) => ({ id: x.id, name: x.name })) }];
+  groups.push({kind:"supplier",title:"Suppliers",description:"Procurement vendors linked to assets.",items:suppliers.map(x=>({id:x.id,name:x.name}))},{kind:"fundingSource",title:"Funding Sources",description:"Funding sources linked to assets.",items:fundingSources.map(x=>({id:x.id,name:x.name}))});
   return <ReferenceManager groups={groups} />;
 }
 

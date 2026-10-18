@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { ArrowLeft, ArrowRight, Camera, CheckCircle2, ImageUp, Keyboard, LoaderCircle, ScanLine, X } from "lucide-react";
+import { AssetAuditForm } from "@/components/asset-audit-form";
 import { Card } from "@/components/ui";
-import { UserAutocomplete } from "@/components/user-autocomplete";
 
 type Option = { value: string; label: string; parentId?: string };
 type RegistrationOptions = {
@@ -13,22 +13,14 @@ type RegistrationOptions = {
   departments: Option[];
   buildings: Option[];
   rooms: Option[];
+  suppliers?: Option[];
+  fundingSources?: Option[];
 };
 
-export function AssetRegistrationForm({ options, currency, assetTagPrefix, initialBarcode = "" }: { options: RegistrationOptions; currency: string; assetTagPrefix: string; initialBarcode?: string }) {
+export function AssetRegistrationForm({ options, assetTagPrefix, initialBarcode = "" }: { options: RegistrationOptions; currency: string; assetTagPrefix: string; initialBarcode?: string }) {
   const [step, setStep] = useState<"capture" | "details">("capture");
-  const [scanTarget, setScanTarget] = useState<"tag" | "serial">(initialBarcode.startsWith(`${assetTagPrefix}-`) ? "tag" : "serial");
-  const [barcode, setBarcode] = useState(initialBarcode);
-  const [tagNumber, setTagNumber] = useState(`${assetTagPrefix}-`);
+  const [barcode, setBarcode] = useState(initialBarcode.startsWith(`${assetTagPrefix}-`) ? "" : initialBarcode);
   const [serialNumber, setSerialNumber] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [kulliyyahId, setKulliyyahId] = useState(options.kulliyyahs[0]?.value ?? "");
-  const [departmentId, setDepartmentId] = useState(options.departments.find((item) => item.parentId === options.kulliyyahs[0]?.value)?.value ?? "");
-  const [buildingId, setBuildingId] = useState(options.buildings[0]?.value ?? "");
-  const [roomId, setRoomId] = useState(options.rooms.find((item) => item.parentId === options.buildings[0]?.value)?.value ?? "");
-  const departmentOptions = options.departments.filter((item) => item.parentId === kulliyyahId);
-  const roomOptions = options.rooms.filter((item) => item.parentId === buildingId);
-
   function captureBarcode(value: string) {
     setBarcode(value.trim());
   }
@@ -36,36 +28,27 @@ export function AssetRegistrationForm({ options, currency, assetTagPrefix, initi
   function continueWithBarcode() {
     const value = barcode.trim();
     if (!value) return;
-    if (scanTarget === "tag") setTagNumber(value);
-    else setSerialNumber(value);
+    setSerialNumber(value);
     setStep("details");
   }
 
   if (step === "capture") {
     return (
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)]">
+      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)]">
         <Card className="overflow-hidden p-0">
           <div className="border-b border-slate-100 px-5 py-4">
             <StepHeader current={1} />
-            <h2 className="mt-4 text-lg font-bold text-slate-900">Capture the asset barcode</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-500">Scan the barcode sticker on the asset, packaging, or box. You can review the value before continuing.</p>
+            <h2 className="mt-4 text-lg font-bold text-slate-900">Capture the manufacturer serial barcode</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">Scan the serial barcode on the device or packaging. The institution asset tag is generated when saved.</p>
           </div>
           <div className="space-y-5 p-5">
-            <fieldset>
-              <legend className="text-sm font-semibold text-slate-700">What does this barcode identify?</legend>
-              <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                <TargetChoice checked={scanTarget === "serial"} onChange={() => setScanTarget("serial")} title="Manufacturer serial number" body="Recommended for a barcode found on the product box or device label." />
-                <TargetChoice checked={scanTarget === "tag"} onChange={() => setScanTarget("tag")} title="IIUM asset tag" body="Use when the sticker contains the institution's asset tag number." />
-              </div>
-            </fieldset>
-
             <BarcodeScanner onDetected={captureBarcode} />
 
-            <label className="grid gap-1.5 text-sm font-semibold text-slate-700">
+            <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-slate-700">
               Captured barcode value
-              <div className="relative">
+              <div className="relative min-w-0">
                 <ScanLine className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                <input value={barcode} onChange={(event) => setBarcode(event.target.value)} className="w-full pl-10" placeholder="Scan or type the barcode value" autoComplete="off" />
+                <input value={barcode} onChange={(event) => setBarcode(event.target.value)} className="min-w-0 max-w-full w-full pl-10" placeholder="Scan or type the barcode value" autoComplete="off" />
               </div>
             </label>
 
@@ -96,7 +79,7 @@ export function AssetRegistrationForm({ options, currency, assetTagPrefix, initi
   }
 
   return (
-    <Card className="p-0">
+    <Card className="min-w-0 p-0">
       <div className="border-b border-slate-100 px-5 py-4">
         <StepHeader current={2} />
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -104,29 +87,7 @@ export function AssetRegistrationForm({ options, currency, assetTagPrefix, initi
           {barcode && <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> Barcode captured</span>}
         </div>
       </div>
-      <form action="/api/assets" method="post" onSubmit={() => setSubmitting(true)} className="grid gap-4 p-5 md:grid-cols-2">
-        <Field name="tagNumber" label="Asset tag number" value={tagNumber} onChange={(event) => setTagNumber(event.target.value)} required />
-        <Field name="serialNumber" label="Serial number" value={serialNumber} onChange={(event) => setSerialNumber(event.target.value)} />
-        <Field name="name" label="Asset name" required />
-        <Field name="acquisitionCost" label={`Acquisition cost (${currency})`} type="number" min="0" step="0.01" required />
-        <SelectField name="categoryId" label="Category" options={options.categories} required />
-        <SelectField name="kulliyyahId" label="Kulliyyah" options={options.kulliyyahs} value={kulliyyahId} onChange={(event) => { const next = event.target.value; setKulliyyahId(next); setDepartmentId(options.departments.find((item) => item.parentId === next)?.value ?? ""); }} required />
-        <SelectField name="departmentId" label="Department" options={departmentOptions} value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} required />
-        <SelectField name="buildingId" label="Building" options={options.buildings} value={buildingId} onChange={(event) => { const next = event.target.value; setBuildingId(next); setRoomId(options.rooms.find((item) => item.parentId === next)?.value ?? ""); }} required />
-        <SelectField name="roomId" label="Room" options={roomOptions} value={roomId} onChange={(event) => setRoomId(event.target.value)} required />
-        <SelectField name="condition" label="Condition" options={["NEW", "EXCELLENT", "GOOD", "FAIR", "POOR", "DAMAGED", "UNSERVICEABLE"].map(asOption)} required />
-        <SelectField name="status" label="Initial status" options={["DRAFT", "PENDING_APPROVAL", "AVAILABLE"].map(asOption)} required />
-        <SelectField name="borrowable" label="Borrowable" options={[{ value: "true", label: "Yes" }, { value: "false", label: "No" }]} required />
-        <div className="md:col-span-2">
-          <UserAutocomplete />
-          <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">When assigned to a user, the system automatically saves the asset as <strong>ASSIGNED</strong> and <strong>not borrowable</strong>.</p>
-        </div>
-        <label className="grid gap-1.5 text-sm font-semibold text-slate-700 md:col-span-2">Description<textarea name="description" rows={4} placeholder="Description, notes, funding source, warranty, and other details" /></label>
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 md:col-span-2 sm:flex-row sm:justify-between">
-          <button type="button" onClick={() => setStep("capture")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /> Back to barcode</button>
-          <button disabled={submitting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-iium-green px-5 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep disabled:opacity-60">{submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}{submitting ? "Registering asset..." : "Register asset"}</button>
-        </div>
-      </form>
+      <div className="min-w-0 p-3 sm:p-5"><AssetAuditForm options={options} serialNumber={serialNumber} /></div>
     </Card>
   );
 }
@@ -211,22 +172,6 @@ export function BarcodeScanner({ onDetected }: { onDetected: (value: string) => 
 
 function StepHeader({ current }: { current: 1 | 2 }) {
   return <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.12em]"><span className={current >= 1 ? "text-iium-deep" : "text-slate-400"}>1. Capture identifier</span><span className="h-px flex-1 bg-slate-200" /><span className={current >= 2 ? "text-iium-deep" : "text-slate-400"}>2. Asset details</span></div>;
-}
-
-function TargetChoice({ checked, onChange, title, body }: { checked: boolean; onChange: () => void; title: string; body: string }) {
-  return <label className={`cursor-pointer rounded-xl border p-4 transition ${checked ? "border-iium-green bg-iium-mist ring-1 ring-iium-green/20" : "border-slate-200 hover:border-slate-300"}`}><span className="flex items-start gap-3"><input type="radio" checked={checked} onChange={onChange} className="mt-1" /><span><span className="block text-sm font-semibold text-slate-800">{title}</span><span className="mt-1 block text-xs leading-5 text-slate-500">{body}</span></span></span></label>;
-}
-
-function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  return <label className="grid gap-1.5 text-sm font-semibold text-slate-700">{label}<input {...props} /></label>;
-}
-
-function SelectField({ label, options, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; options: Option[] }) {
-  return <label className="grid gap-1.5 text-sm font-semibold text-slate-700">{label}<select {...props}>{!options.length && <option value="">Add a related record first</option>}{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;
-}
-
-function asOption(value: string): Option {
-  return { value, label: value.replaceAll("_", " ") };
 }
 
 function cameraError(cause: unknown) {

@@ -1,0 +1,18 @@
+import { FlatCompat } from "@eslint/eslintrc";
+import { fileURLToPath } from "node:url";
+const compat = new FlatCompat({
+  baseDirectory: fileURLToPath(new URL(".", import.meta.url)),
+});
+const config = [
+  {
+    ignores: [
+      ".next/**",
+      ".open-next/**",
+      "node_modules/**",
+      "presentation/**",
+      "cloudflare-env.d.ts",
+    ],
+  },
+  ...compat.extends("next/core-web-vitals"),
+];
+export default config;

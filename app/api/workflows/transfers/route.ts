@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { canTransferAsset, canTransitionTransfer } from "@/lib/transfer";
 import { transferDecisionSchema, transferSchema } from "@/lib/validation";
 
+// Legacy transfer custody columns refer to Assigned To, separate from Asset.custodianId.
 const activeTransferStatuses = [RequestStatus.SUBMITTED, RequestStatus.PENDING_APPROVAL];
 
 export async function POST(request: NextRequest) {
@@ -34,9 +35,9 @@ export async function POST(request: NextRequest) {
     prisma.assetTransfer.findFirst({ where: { assetId: asset.id, status: { in: activeTransferStatuses } } })
   ]);
   if (!targetRoom) return NextResponse.json({ error: "Select a valid active destination room" }, { status: 400 });
-  if (targetCustodianId && !targetCustodian) return NextResponse.json({ error: "Select a valid active custodian" }, { status: 400 });
-  if (session.user.role === RoleName.ASSET_LIAISON && targetCustodian?.departmentId !== undefined && targetCustodian.departmentId !== session.user.departmentId) return NextResponse.json({ error: "Asset Liaisons can only transfer custody within their assigned department" }, { status: 403 });
-  if (targetRoom.id === asset.roomId && targetCustodianId === asset.assignedUserId) return NextResponse.json({ error: "The destination and custodian are unchanged" }, { status: 400 });
+  if (targetCustodianId && !targetCustodian) return NextResponse.json({ error: "Select a valid active assigned user" }, { status: 400 });
+  if (session.user.role === RoleName.ASSET_LIAISON && targetCustodian?.departmentId !== undefined && targetCustodian.departmentId !== session.user.departmentId) return NextResponse.json({ error: "Asset Liaisons can only transfer assigned users within their assigned department" }, { status: 403 });
+  if (targetRoom.id === asset.roomId && targetCustodianId === asset.assignedUserId) return NextResponse.json({ error: "The destination and assigned user are unchanged" }, { status: 400 });
   if (duplicate) return NextResponse.json({ error: "This asset already has a transfer awaiting approval" }, { status: 409 });
 
   const transferNumber = `TR-${Date.now()}`;
@@ -101,14 +102,14 @@ export async function PATCH(request: NextRequest) {
   const currentCustodianMatches = existing.currentCustodian === existing.asset.assignedUserId
     || existing.currentCustodian === existing.asset.assignedUser?.name
     || (!existing.currentCustodian && !existing.asset.assignedUserId);
-  if (!currentRoomMatches || !currentCustodianMatches) return NextResponse.json({ error: "The asset location or custodian changed after this request was submitted. Reject it and create a new transfer." }, { status: 409 });
+  if (!currentRoomMatches || !currentCustodianMatches) return NextResponse.json({ error: "The asset location or assigned user changed after this request was submitted. Reject it and create a new transfer." }, { status: 409 });
 
   const [targetRoom, targetCustodian] = await Promise.all([
     prisma.room.findFirst({ where: { OR: [{ id: existing.newLocation }, { name: existing.newLocation }], active: true, floor: { active: true, building: { active: true } } }, include: { floor: { include: { building: true } } } }),
     existing.newCustodian ? prisma.user.findFirst({ where: { OR: [{ id: existing.newCustodian }, { name: existing.newCustodian }], status: AccountStatus.ACTIVE }, include: { department: true } }) : Promise.resolve(null)
   ]);
   if (!targetRoom) return NextResponse.json({ error: "The destination room is no longer available" }, { status: 409 });
-  if (existing.newCustodian && !targetCustodian) return NextResponse.json({ error: "The destination custodian is no longer active" }, { status: 409 });
+  if (existing.newCustodian && !targetCustodian) return NextResponse.json({ error: "The destination assigned user is no longer active" }, { status: 409 });
 
   const targetCustodianId = targetCustodian?.id ?? existing.asset.assignedUserId;
   const custodyChanged = targetCustodianId !== existing.asset.assignedUserId;
@@ -126,7 +127,7 @@ export async function PATCH(request: NextRequest) {
         updatedById: session.user.id
       }
     });
-    if (custodyChanged) await tx.assetAssignment.create({ data: { assetId: existing.assetId, assignedUserId: targetCustodianId, assignedById: session.user.id, purpose: "Asset custodian transferred", acceptanceStatus: "Assigned" } });
+    if (custodyChanged) await tx.assetAssignment.create({ data: { assetId: existing.assetId, assignedUserId: targetCustodianId, assignedById: session.user.id, purpose: "Asset assigned user transferred", acceptanceStatus: "Assigned" } });
     const transfer = await tx.assetTransfer.update({ where: { id: existing.id }, data: { status: RequestStatus.COMPLETED, approvedById: session.user.id, approvedAt: new Date(), transferDate: new Date(), rejectionReason: null } });
     return { asset, transfer };
   });

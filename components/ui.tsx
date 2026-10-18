@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-xl border border-slate-200/80 bg-white p-5 shadow-glass", className)} {...props} />;
+  return <div className={cn("min-w-0 max-w-full rounded-xl border border-slate-200/80 bg-white p-5 shadow-glass", className)} {...props} />;
 }
 
 export function Badge({ children, tone = "green" }: { children: React.ReactNode; tone?: "green" | "gold" | "slate" | "red" }) {

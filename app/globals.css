@@ -47,3 +47,95 @@ a {
   scrollbar-color: #cbd5e1 transparent;
   scrollbar-width: thin;
 }
+
+/* Let native controls shrink inside cards instead of widening implicit grid tracks. */
+.asset-audit-form,
+.asset-audit-form :where(section, div, label, details, dl, dt, dd, p),
+.asset-attachments,
+.asset-attachments :where(div, label) {
+  min-width: 0;
+}
+
+.asset-form-section {
+  @apply rounded-xl border border-slate-200 bg-white p-3 sm:p-5;
+}
+
+.asset-form-heading {
+  @apply mb-4 border-b border-slate-100 pb-3;
+}
+
+.asset-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.asset-audit-form > *,
+.asset-form-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.asset-audit-form :where(input, select, textarea),
+.asset-attachments :where(input, select),
+.asset-user-picker input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.asset-audit-form select,
+.asset-attachments select {
+  padding-right: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-audit-form input[type="date"] {
+  min-inline-size: 0;
+}
+
+.asset-audit-form input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-width: 0;
+}
+
+.asset-audit-form input[readonly] {
+  @apply bg-slate-50 text-slate-500 shadow-none;
+}
+
+.asset-audit-form :where(p, dd, [role="alert"]),
+.asset-attachments [role="alert"] {
+  overflow-wrap: anywhere;
+}
+
+.asset-form-optional > summary {
+  min-height: 44px;
+}
+
+.asset-form-optional[open] > summary {
+  @apply mb-3 border-b border-slate-100 pb-3;
+}
+
+.asset-form-actions {
+  @apply flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+@media (min-width: 768px) {
+  .asset-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .asset-audit-form :where(input, select, textarea),
+  .asset-attachments :where(input, select),
+  .asset-user-picker input {
+    font-size: 0.875rem;
+  }
+}
+
+.asset-form-optional > summary::-webkit-details-marker {
+  display: none;
+}

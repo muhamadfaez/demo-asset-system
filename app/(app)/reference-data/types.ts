@@ -1,4 +1,4 @@
-export type ReferenceKind = "category" | "kulliyyah" | "department" | "unit" | "campus" | "building" | "floor" | "room";
+export type ReferenceKind = "supplier" | "fundingSource" | "category" | "kulliyyah" | "department" | "unit" | "campus" | "building" | "floor" | "room";
 
 export type ReferenceItem = {
   id: string;

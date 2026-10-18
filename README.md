@@ -24,7 +24,8 @@ A production-oriented Next.js asset management system for Kulliyyah, department,
 ```bash
 npm install
 cp .env.example .env
-npm run db:push
+npx prisma db execute --schema prisma/schema.prisma --file prisma/baseline.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/202610180001_asset_audit_records/migration.sql
 npm run db:seed
 npm run dev
 ```
@@ -76,3 +77,7 @@ These imports keep existing records and can be rerun without duplicating the dem
 ## Backup And Restore
 
 For SQLite, back up `prisma/dev.db`. For Neon/PostgreSQL, use scheduled `pg_dump` backups and test restores into a staging database. Always include uploaded document storage in backup procedures.
+
+## Asset audit records
+
+See [ASSET-AUDIT-CHANGES.md](ASSET-AUDIT-CHANGES.md) for the file-by-file changes, migration and rollback commands, attachment limits, validation rules and implementation decisions. Existing databases must apply the additive SQL migration once; `db push` alone does not install the audit/verification triggers.

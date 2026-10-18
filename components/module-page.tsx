@@ -1,3 +1,6 @@
+import { getLatestAuditLogs } from "@/lib/asset-audit-log";
+import { assetSearchFilter } from "@/lib/asset-search-db";
+import { AttachmentManager } from "@/components/asset-attachments";
 import { getDateFormatter } from "@/lib/date-formatter";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -127,7 +130,7 @@ export async function AssetsPage({ user, searchParams }: { user: CurrentUser; se
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
   const status = typeof searchParams.status === "string" ? searchParams.status : "";
   const assets = await prisma.asset.findMany({
-    where: { AND: [assetScopeFor(user), status ? { status: status as AssetStatus } : {}, q ? { OR: [{ tagNumber: { contains: q } }, { name: { contains: q } }, { serialNumber: { contains: q } }] } : {}] },
+    where: { AND: [assetScopeFor(user), status ? { status: status as AssetStatus } : {}, await assetSearchFilter(q)] },
     include: { category: true, department: true, room: true, assignedUser: true },
     orderBy: { updatedAt: "desc" },
     take: 100
@@ -148,13 +151,13 @@ export async function AssetsPage({ user, searchParams }: { user: CurrentUser; se
 export async function AssetFormPage({ user, initialBarcode = "" }: { user: CurrentUser; initialBarcode?: string }) {
   const departmentScope = user.role === RoleName.ASSET_LIAISON ? { id: user.departmentId ?? "__unassigned__" } : {};
   const kulliyyahScope = user.role === RoleName.ASSET_LIAISON ? { departments: { some: departmentScope } } : {};
-  const [categories, kulliyyahs, departments, buildings, rooms, settings] = await Promise.all([
+  const [categories, kulliyyahs, departments, buildings, rooms, settings, suppliers, fundingSources] = await Promise.all([
     prisma.assetCategory.findMany(),
     prisma.kulliyyah.findMany({ where: { ...kulliyyahScope, active: true }, orderBy: { name: "asc" } }),
     prisma.department.findMany({ where: { ...departmentScope, active: true, kulliyyah: { active: true } }, include: { kulliyyah: { select: { name: true } } }, orderBy: { name: "asc" } }),
     prisma.building.findMany({ where: { active: true, campus: { active: true } }, include: { campus: { select: { name: true } } }, orderBy: { name: "asc" } }),
     prisma.room.findMany({ where: { active: true, floor: { active: true, building: { active: true, campus: { active: true } } } }, include: { floor: { include: { building: { select: { name: true } } } } }, orderBy: { name: "asc" } }),
-    getSystemSettings()
+    getSystemSettings(), prisma.supplier.findMany(), prisma.fundingSource.findMany()
   ]);
   return (
     <div className="space-y-5">
@@ -164,6 +167,8 @@ export async function AssetFormPage({ user, initialBarcode = "" }: { user: Curre
         currency={settings.currency}
         assetTagPrefix={settings.assetTagPrefix}
         options={{
+          suppliers: suppliers.map(item => ({ value: item.id, label: item.name })),
+          fundingSources: fundingSources.map(item => ({ value: item.id, label: item.name })),
           categories: categories.map((item) => ({ value: item.id, label: item.name })),
           kulliyyahs: kulliyyahs.map((item) => ({ value: item.id, label: item.name })),
           departments: departments.map((item) => ({ value: item.id, label: `${item.kulliyyah.name} / ${item.name}`, parentId: item.kulliyyahId })),
@@ -181,6 +186,8 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
       where: { AND: [{ id }, assetScopeFor(user)] },
       include: {
         category: true,
+        brand: true, supplier: true, fundingSource: true, custodian: true, verifiedBy: true,
+        documents: { select: { id: true, fileName: true, typeLabel: true } },
         department: true,
         assignedUser: { include: { department: true } },
         room: { include: { floor: { include: { building: true } } } },
@@ -204,7 +211,7 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
   const historyRows: Array<[string, number]> = user.role === RoleName.USER
     ? [["My assignments", asset.assignments.filter((item) => item.assignedUserId === user.id).length], ["My borrowings", asset.borrowings.filter((item) => item.requesterId === user.id).length], ["My maintenance reports", asset.maintenance.filter((item) => item.reportedById === user.id).length], ["My incident reports", asset.incidents.filter((item) => item.reportedById === user.id).length]]
     : [["Assignments", asset.assignments.length], ["Borrowings", asset.borrowings.length], ["Transfers", asset.transfers.length], ["Maintenance", asset.maintenance.length], ["Verification checks", asset.verifications.length], ["Incidents", asset.incidents.length], ["Disposals", asset.disposals.length]];
-  const recordRows: Array<[string, string | number]> = [["Status", asset.status], ["Condition", asset.condition], ["Borrowable", asset.borrowable ? "Yes" : "No"], ["Serial", asset.serialNumber ?? "-"], ...(user.role === RoleName.USER ? [] : [["Assigned to", asset.assignedUser ? `${asset.assignedUser.name} (${asset.assignedUser.staffNo ?? asset.assignedUser.email})` : "Unassigned"] as [string, string], ["Value", `${settings.currency} ${asset.acquisitionCost.toLocaleString()}`] as [string, string]]), ["Location", `${asset.room.floor.building.name} / ${asset.room.name}`]];
+  const recordRows: Array<[string, string | number]> = [["Status", asset.status], ["Condition", asset.condition], ["Borrowable", asset.borrowable ? "Yes" : "No"], ["Serial", asset.serialNumber ?? "-"], ...(user.role === RoleName.USER ? [] : [["Assigned to", asset.assignedUser ? `${asset.assignedUser.name} (${asset.assignedUser.staffNo ?? asset.assignedUser.email})` : "Unassigned"] as [string, string], ["Value", `${settings.currency} ${asset.acquisitionCost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`] as [string, string]]), ["Location", `${asset.room.floor.building.name} / ${asset.room.name}`]];
   return (
     <div className="space-y-5">
       <Hero title={asset.name} subtitle={`${asset.tagNumber} · ${asset.category.name} · ${asset.department.name}`} action={<div className="flex gap-2">{can(user, "asset:update") && <Link prefetch={false} className="rounded-lg bg-iium-green px-4 py-2 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href={`/assets/${asset.id}/edit`}>Edit asset</Link>}<Link prefetch={false} className="rounded-lg border border-iium-green bg-white px-4 py-2 text-sm font-semibold text-iium-green" href={`/api/qr/${asset.id}`}>Open QR</Link></div>} />
@@ -212,6 +219,23 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
         <Card><h2 className="font-semibold">Record</h2><Facts rows={recordRows} /></Card>
         <Card className="lg:col-span-2"><h2 className="font-semibold">{user.role === RoleName.USER ? "My History" : "History"}</h2><Facts rows={historyRows} /></Card>
       </section>
+      {user.role !== RoleName.USER && <section className="grid gap-4 lg:grid-cols-2">
+       <Card><h2 className="font-semibold">Identification & Procurement</h2><Facts rows={[
+        ["Asset type", asset.assetType], ["Brand", asset.brandName ?? asset.brand?.name ?? "?"], ["Model",asset.model ?? "?"],
+        ["P.O. number",asset.purchaseOrderNumber ?? "?"],["Invoice",asset.invoiceNumber ?? "?"],["DO / GRN",asset.deliveryOrderNumber ?? "?"],
+        ["Vendor",asset.supplier?.name ?? "?"],["Purchase date",asset.acquisitionDate ? format(asset.acquisitionDate,"dd MMM yyyy") : "?"],
+        ["Received date",asset.receivedDate ? format(asset.receivedDate,"dd MMM yyyy") : "?"],
+        ["Acquisition cost",`RM ${asset.acquisitionCost.toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2})}`],
+        ["Funding source",asset.fundingSource?.name ?? "?"],["Grant / project",asset.grantProjectCode ?? "?"],["Legacy reason",asset.legacyRecordReason ?? "?"],
+        ["Custodian",asset.custodian?.name ?? "?"]]} /></Card>
+       <Card><h2 className="font-semibold">Audit & Verification</h2><Facts rows={[
+        ["Last verified",asset.lastVerificationDate ? formatSystemDate(asset.lastVerificationDate,settings.timeZone,true) : "Not verified"],
+        ["Verified by",asset.verifiedBy?.name ?? "?"],["Result",asset.verificationResult ?? "?"],
+        ["Warranty start",asset.warrantyStartDate ? format(asset.warrantyStartDate,"dd MMM yyyy") : "?"],
+        ["Warranty end",asset.warrantyExpiryDate ? format(asset.warrantyExpiryDate,"dd MMM yyyy") : "?"],
+        ["Service contract",asset.serviceContract ?? "?"],["Support vendor",asset.supportVendor ?? "?"]]} /></Card>
+       <Card className="lg:col-span-2"><details><summary className="cursor-pointer font-semibold">Supporting Records</summary><AttachmentManager assetId={asset.id} initialDocuments={asset.documents} readOnly={!can(user,"asset:update")} /></details></Card>
+      </section>}
       {user.role !== RoleName.USER && (asset.assignments.length ? <DataTable title="Assignment History" headers={["Date", "Assigned to", "User ID", "Department", "Assigned by", "Action"]} rows={asset.assignments.map((assignment) => [formatSystemDate(assignment.assignmentDate, settings.timeZone, true), assignment.assignedUser?.name ?? "Unassigned", assignment.assignedUser?.staffNo ?? assignment.assignedUserId ?? "-", assignment.assignedUser?.department?.name ?? "-", assignedByNames.get(assignment.assignedById) ?? "Unknown user", assignment.purpose])} /> : <EmptyState title="No assignment history" body="Assignment and removal actions will appear here for audit purposes." />)}
     </div>
   );
@@ -287,10 +311,10 @@ async function getRows(kind: string, user: CurrentUser) {
   }
   if (kind === "audit") {
     const [data, settings] = await Promise.all([
-      prisma.auditLog.findMany({ include: { user: true }, take: 80, orderBy: { createdAt: "desc" } }),
+      getLatestAuditLogs(),
       getSystemSettings()
     ]);
-    return data.map((x) => ({ headers: ["Time", "User", "Action", "Module", "Record"], values: [formatSystemDate(x.createdAt, settings.timeZone, true), x.user?.name ?? "System", x.action, x.module, x.recordType] }));
+    return data.map((x) => ({ headers: ["Time", "User", "Action", "Module", "Record", "Record ID", "Old values", "New values"], values: [formatSystemDate(x.createdAt, settings.timeZone, true), x.user?.name ?? "System", x.action, x.module, x.recordType, x.recordId ?? "?", x.previousValues ?? "?", x.newValues ?? "?"] }));
   }
   if (kind === "locations") {
     const data = await prisma.room.findMany({ include: { floor: { include: { building: { include: { campus: true } } } } }, take: 100, orderBy: { name: "asc" } });
@@ -357,7 +381,7 @@ function AssetTable({ assets, personal = false, currentUserId }: { assets: Await
 function FilterBar({ q, status }: { q: string; status: string }) {
   return (
     <form className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-white p-4 shadow-glass md:flex-row">
-      <input name="q" defaultValue={q} placeholder="Search tag, name, serial number" className="flex-1" />
+      <input name="q" defaultValue={q} placeholder="Tag, name, serial, P.O., vendor or purchase date (YYYY-MM-DD)" className="flex-1" />
       <select name="status" defaultValue={status}>
         <option value="">All statuses</option>
         {Object.values(AssetStatus).map((s) => <option key={s}>{s}</option>)}

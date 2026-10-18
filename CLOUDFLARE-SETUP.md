@@ -96,9 +96,10 @@ Run this once against the NEW, empty database:
 
 ```powershell
 npx wrangler d1 execute asset-management --remote --file=prisma/baseline.sql
+npx wrangler d1 execute asset-management --remote --file=prisma/migrations/202610180001_asset_audit_records/migration.sql
 ```
 
-This creates the application tables; it does not create user accounts. Do not rerun the baseline against an initialized database. Do not use `npm run db:seed` to populate remote D1: that script is for the local Prisma database and creates local demo users.
+These commands create the application tables and install the asset audit fields and triggers; they do not create user accounts. Do not rerun the baseline against an initialized database. Do not use `npm run db:seed` to populate remote D1: that script is for the local Prisma database and creates local demo users.
 
 Verify the essential tables:
 
