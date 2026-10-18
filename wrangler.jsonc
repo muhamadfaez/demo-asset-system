@@ -5,7 +5,7 @@
   "vars": {
     "SUPERADMIN_EMAIL": "muhamadfaez@iium.edu.my"
   },
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "compatibility_date": "2026-08-02",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {

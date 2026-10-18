@@ -144,3 +144,11 @@ Mobile refinement deployed as Worker version `400cd371-e145-4655-9163-14197a2f73
 - Retained stored custodian records and detail information. PATCH preserves custody when omitted, while explicit API updates/clears remain supported. No database migration or data deletion.
 - Added regression coverage for omitted custody and explicit clearing. All 88 tests passed across 18 files; production build, types and lint passed with the existing warnings.
 - Signed-in visual checks remain unavailable because this session has no browser surface.
+
+## Transfer resource-limit fix: 19 October 2026
+
+- Replaced production transfers SSR with a public static shell plus authenticated native D1 reads/writes. No private HTML/data caching and no paid-tier settings.
+- Preserved role scope, assignment/custodian separation, approvals, auditing, notifications and atomic stale/replay protection. Paginated history and searchable bounded choices keep response sizes predictable.
+- Added reversible indexes for pending-transfer checks, asset scope and unread notifications; no production records changed.
+- All 100 tests passed. Synthetic live testing of 73 requests against a separate Worker/database measured CPU p50 1.788 ms and p99 5.140 ms with no runtime errors; temporary resources were removed.
+- See `WORKERS-FREE-TIER.md` for architecture, deployment, validation and remaining scope. Other Next pages still require their own CPU-budget assessment.

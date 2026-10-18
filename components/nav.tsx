@@ -1,6 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import NextLink from "next/link";
+
+function Link(props: React.ComponentProps<typeof NextLink>) {
+  if (props.href === "/transfers") {
+    const { prefetch: _prefetch, ...anchor } = props;
+    return <a {...anchor} href="/transfers" />;
+  }
+  return <NextLink {...props} />;
+}
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, Menu, Search, X } from "lucide-react";

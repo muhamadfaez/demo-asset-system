@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "prisma generate && next build",
-    "postbuild": "opennextjs-cloudflare build --skipNextBuild",
+    "postbuild": "opennextjs-cloudflare build --skipNextBuild && node scripts/build-static-transfers.mjs",
     "build:worker": "npm run build",
     "preview": "npm run build && opennextjs-cloudflare preview",
     "deploy": "npm run build && opennextjs-cloudflare deploy",
@@ -50,6 +50,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
+    "esbuild": "0.28.1",
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.1.4",
     "postcss": "^8.4.49",

@@ -349,6 +349,9 @@ model Asset {
   @@index([acquisitionDate])
   @@index([status, condition])
   @@index([departmentId, roomId])
+  @@index([assignedUserId, archivedAt, name])
+  @@index([departmentId, archivedAt, name])
+  @@index([archivedAt, name])
 }
 
 model AssetImage {
@@ -432,6 +435,11 @@ model AssetTransfer {
   rejectionReason  String?
   createdAt        DateTime      @default(now())
   asset            Asset         @relation(fields: [assetId], references: [id])
+
+  @@index([assetId, status])
+  @@index([requestedById])
+  @@index([currentCustodian])
+  @@index([newCustodian])
 }
 
 model MaintenanceRequest {
@@ -529,6 +537,8 @@ model Notification {
   readAt    DateTime?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
 }
 
 model AuditLog {
