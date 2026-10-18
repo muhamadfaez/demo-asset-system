@@ -6,12 +6,15 @@ import { can } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { UserControls } from "@/app/(app)/users/user-controls";
 import { PersonalInfoForm } from "@/app/(app)/users/personal-info-form";
+import Link from "next/link";
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
+  const query = (await searchParams).q;
+  const q = typeof query === "string" ? query.trim().slice(0, 100) : "";
   const currentUser = await getCurrentUser();
   if (!can(currentUser, "user:manage")) redirect("/unauthorized");
   const [users, departments] = await Promise.all([
-    prisma.user.findMany({ include: { department: true }, orderBy: { createdAt: "desc" } }),
+    prisma.user.findMany({ where: q ? { OR: [{ name: { contains: q } }, { email: { contains: q } }, { staffNo: { contains: q } }] } : {}, include: { department: true }, orderBy: { createdAt: "desc" } }),
     prisma.department.findMany({ where: { active: true }, orderBy: { name: "asc" } })
   ]);
   const pending = users.filter((user) => user.status === AccountStatus.PENDING);
@@ -24,6 +27,7 @@ export default async function Page() {
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-iium-green">Administration</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
         <p className="mt-1 text-sm text-slate-500">Review registrations, assign access roles and departments, and manage account status.</p>
+        {q && <p className="mt-2 text-sm text-iium-deep">Showing people matching “{q}”. <Link href="/users" className="underline">Show all users</Link></p>}
       </div>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Summary label="Pending review" value={pending.length} tone="gold" />

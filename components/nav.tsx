@@ -1,36 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Boxes, ClipboardCheck, FileBarChart, LayoutDashboard, MapPin, Menu, QrCode, ScanLine, Search, Settings, ShieldCheck, Users, X } from "lucide-react";
+import { Bell, Menu, Search, X } from "lucide-react";
 import type { RoleName } from "@prisma/client";
 import { cn } from "@/components/ui";
 import { LogoutButton } from "@/components/logout-button";
 import { UserAvatar } from "@/components/user-avatar";
 
-const navSections = ["Overview", "Asset operations", "Insights", "Administration"] as const;
-type NavSection = (typeof navSections)[number];
-type NavItem = { href: string; label: string; icon: ComponentType<{ className?: string }>; roles: RoleName[]; section: NavSection };
-
-export const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Overview" },
-  { href: "/notifications", label: "Notifications", icon: Bell, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Overview" },
-  { href: "/assets", label: "Assets", icon: Boxes, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Asset operations" },
-  { href: "/qr-scanner", label: "Scan Asset", icon: ScanLine, roles: ["SUPERADMIN"], section: "Asset operations" },
-  { href: "/borrowings", label: "Borrowing", icon: ClipboardCheck, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Asset operations" },
-  { href: "/transfers", label: "Transfers", icon: ClipboardCheck, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Asset operations" },
-  { href: "/maintenance", label: "Maintenance", icon: ClipboardCheck, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Asset operations" },
-  { href: "/verification", label: "Verification", icon: QrCode, roles: ["SUPERADMIN", "ASSET_LIAISON"], section: "Asset operations" },
-  { href: "/incidents", label: "Incidents", icon: ClipboardCheck, roles: ["SUPERADMIN", "ASSET_LIAISON", "USER"], section: "Asset operations" },
-  { href: "/disposal", label: "Disposal", icon: ClipboardCheck, roles: ["SUPERADMIN", "ASSET_LIAISON"], section: "Asset operations" },
-  { href: "/reports", label: "Reports", icon: FileBarChart, roles: ["SUPERADMIN", "ASSET_LIAISON"], section: "Insights" },
-  { href: "/audit-logs", label: "Audit Logs", icon: ShieldCheck, roles: ["SUPERADMIN"], section: "Insights" },
-  { href: "/users", label: "Users", icon: Users, roles: ["SUPERADMIN"], section: "Administration" },
-  { href: "/locations", label: "Locations", icon: MapPin, roles: ["SUPERADMIN"], section: "Administration" },
-  { href: "/master-data", label: "Master Data", icon: Boxes, roles: ["SUPERADMIN"], section: "Administration" },
-  { href: "/settings", label: "Settings", icon: Settings, roles: ["SUPERADMIN"], section: "Administration" }
-];
+import { navItems, navSections } from "@/lib/navigation";
+import { AppIcon } from "@/components/app-icon";
+import { InstallAppButton } from "@/components/pwa-client";
 
 const mobilePrimary = [
   { href: "/dashboard", label: "Home" },
@@ -39,7 +20,7 @@ const mobilePrimary = [
   { href: "/maintenance", label: "Maintain" }
 ];
 
-export function Sidebar({ role, organisationName, systemName }: { role: RoleName; organisationName: string; systemName: string }) {
+export function Sidebar({ role, organisationName, systemName, appIconVersion }: { role: RoleName; organisationName: string; systemName: string; appIconVersion: string }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
@@ -53,7 +34,7 @@ export function Sidebar({ role, organisationName, systemName }: { role: RoleName
     <>
       <aside className="hidden h-[calc(100vh-2rem)] w-64 shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-glass lg:sticky lg:top-4 lg:flex">
         <div className="flex h-20 shrink-0 items-center gap-3 border-b border-slate-100 px-5">
-          <div className="grid h-10 w-10 place-items-center rounded-lg bg-gradient-to-br from-iium-green to-iium-deep text-base font-bold text-white shadow-lift">II</div>
+          <AppIcon version={appIconVersion} />
           <div>
             <p className="max-w-40 truncate text-base font-extrabold tracking-tight text-iium-deep" title={organisationName}>{organisationName}</p>
             <p className="max-w-40 truncate text-[11px] text-slate-400" title={systemName}>{systemName}</p>
@@ -115,10 +96,13 @@ export function Topbar({ name, image, role, systemName, unreadNotifications }: {
         <p className="mt-0.5 hidden max-w-md truncate text-[11px] font-medium text-white/70 sm:block">{role} · {systemName}</p>
       </div>
       <div className="flex items-center gap-2">
-        <label className="relative hidden md:block">
+        <form action="/search" method="get" role="search" className="relative hidden md:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-          <input aria-label="Global search" className="w-64 border-white/25 bg-white/10 py-2 pl-9 text-white shadow-none placeholder:text-white/60 hover:border-white/40 hover:bg-white/15 focus:border-white/60 focus:ring-white/10" placeholder="Search anything..." />
-        </label>
+          <input name="q" type="search" required minLength={2} maxLength={100} aria-label="Global search" className="w-64 border-white/25 bg-white/10 py-2 pl-9 text-white shadow-none placeholder:text-white/60 hover:border-white/40 hover:bg-white/15 focus:border-white/60 focus:ring-white/10" placeholder="Search assets, people, pages..." />
+          <button type="submit" className="sr-only">Search</button>
+        </form>
+        <Link href="/search" aria-label="Search" className="rounded-lg bg-white/10 p-2.5 md:hidden"><Search className="h-4 w-4" /></Link>
+        <InstallAppButton />
         <Link href="/notifications" className="relative rounded-lg bg-white/10 p-2.5 text-white hover:bg-white/20" aria-label={`${unreadNotifications} unread notifications`}><Bell className="h-4 w-4" />{unreadNotifications > 0 && <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-iium-green bg-iium-gold px-1 text-[9px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link>
         <Link href="/profile" className="ml-1 rounded-full" aria-label={`${name}, ${role}`}><UserAvatar name={name} image={image} priority className="border-2 border-white/70 shadow-sm" /></Link>
         <div className="lg:hidden"><LogoutButton compact className="border-white/20 bg-white/10 text-white shadow-none hover:bg-white/20 hover:text-white" /></div>

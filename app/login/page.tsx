@@ -1,5 +1,6 @@
 import { signIn } from "@/lib/auth";
 import { getLoginSettings } from "@/lib/settings";
+import { AppIcon } from "@/components/app-icon";
 
 // System settings come from the database. Rendering this route at build time
 // makes deployments fail before runtime secrets are available.
@@ -13,7 +14,7 @@ export default async function LoginPage() {
         <div className="relative hidden min-h-[460px] overflow-hidden bg-gradient-to-br from-iium-deep via-iium-green to-[#19aaa4] p-10 text-white md:flex md:flex-col md:justify-between">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full border-[40px] border-white/10" />
           <div className="relative flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-lg bg-white text-lg font-extrabold text-iium-deep">II</div>
+            <AppIcon version={settings.appIconVersion} className="h-11 w-11" />
             <div><p className="font-bold">{settings.organisationName}</p><p className="max-w-56 truncate text-xs text-white/70">{settings.systemName}</p></div>
           </div>
           <div className="relative">
@@ -24,7 +25,7 @@ export default async function LoginPage() {
         </div>
         <div className="flex min-h-[460px] flex-col justify-center p-7 sm:p-10">
           <div className="mb-8 flex items-center gap-3 md:hidden">
-            <div className="grid h-11 w-11 place-items-center rounded-lg bg-gradient-to-br from-iium-green to-iium-deep text-lg font-bold text-white shadow-lift">II</div>
+            <AppIcon version={settings.appIconVersion} className="h-11 w-11" />
             <p className="font-bold text-iium-deep">{settings.organisationName}</p>
           </div>
           <div className="mb-8">

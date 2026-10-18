@@ -1,14 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Building2, CheckCircle2, Clock3, Globe2, Hash, Save, ShieldCheck } from "lucide-react";
 import type { SystemSettings } from "@/lib/settings";
 import { saveSettings, type SettingsActionState } from "@/app/(app)/settings/actions";
+import { IconUpload } from "@/components/icon-upload";
 
 const initialState: SettingsActionState = { status: "idle" };
 
 export function SettingsForm({ settings }: { settings: SystemSettings }) {
   const [state, formAction, pending] = useActionState(saveSettings, initialState);
+  const [iconBusy, setIconBusy] = useState(false);
   return (
     <form action={formAction} className="space-y-4">
       {state.message && (
@@ -21,6 +23,19 @@ export function SettingsForm({ settings }: { settings: SystemSettings }) {
       <SettingsSection icon={Building2} title="Identity" description="Names displayed throughout the application and exported reports.">
         <Field name="systemName" label="System name" defaultValue={settings.systemName} error={state.errors?.systemName?.[0]} />
         <Field name="organisationName" label="Short organisation name" defaultValue={settings.organisationName} error={state.errors?.organisationName?.[0]} hint="Used in the sidebar brand." />
+        <IconUpload version={settings.appIconVersion} onProcessingChange={setIconBusy} />
+      </SettingsSection>
+
+      <SettingsSection icon={Globe2} title="Progressive web app" description="Control the name, colours, and display of the app installed on phones and computers.">
+        <SelectField name="pwaEnabled" label="App installation" defaultValue={settings.pwaEnabled} options={[["true", "Enabled"], ["false", "Disabled"]]} error={state.errors?.pwaEnabled?.[0]} />
+        <Field name="pwaName" label="Installed app name" defaultValue={settings.pwaName} error={state.errors?.pwaName?.[0]} />
+        <Field name="pwaShortName" label="Home screen name" defaultValue={settings.pwaShortName} error={state.errors?.pwaShortName?.[0]} />
+        <Field name="pwaDescription" label="App description" defaultValue={settings.pwaDescription} error={state.errors?.pwaDescription?.[0]} />
+        <Field name="pwaThemeColor" type="color" label="Theme colour" defaultValue={settings.pwaThemeColor} error={state.errors?.pwaThemeColor?.[0]} />
+        <Field name="pwaBackgroundColor" type="color" label="Launch background colour" defaultValue={settings.pwaBackgroundColor} error={state.errors?.pwaBackgroundColor?.[0]} />
+        <SelectField name="pwaDisplay" label="Display mode" defaultValue={settings.pwaDisplay} options={[["standalone", "Standalone app"], ["minimal-ui", "Minimal browser controls"], ["fullscreen", "Full screen"]]} error={state.errors?.pwaDisplay?.[0]} />
+        <SelectField name="pwaOrientation" label="Screen orientation" defaultValue={settings.pwaOrientation} options={[["any", "Any"], ["portrait", "Portrait"], ["landscape", "Landscape"]]} error={state.errors?.pwaOrientation?.[0]} />
+        <p className="text-xs text-slate-500 md:col-span-2">The app opens your dashboard after sign-in. Without a connection, an offline page appears; asset records and account data require an internet connection. Display and orientation support depend on the device.</p>
       </SettingsSection>
 
       <SettingsSection icon={Globe2} title="Access and localisation" description="Control the authorised Google domain and regional display defaults.">
@@ -39,7 +54,7 @@ export function SettingsForm({ settings }: { settings: SystemSettings }) {
       </SettingsSection>
 
       <div className="sticky bottom-3 flex justify-end rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur">
-        <button disabled={pending} className="inline-flex items-center gap-2 rounded-lg bg-iium-green px-5 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep disabled:cursor-not-allowed disabled:opacity-60">
+        <button disabled={pending || iconBusy} className="inline-flex items-center gap-2 rounded-lg bg-iium-green px-5 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep disabled:cursor-not-allowed disabled:opacity-60">
           <Save className="h-4 w-4" />{pending ? "Saving..." : "Save settings"}
         </button>
       </div>

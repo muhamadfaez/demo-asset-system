@@ -52,6 +52,8 @@ npm run db:seed
 
 ## Deployment
 
+See [PWA-AND-SEARCH.md](PWA-AND-SEARCH.md) for workspace search, admin icon uploads, installation settings, and offline behaviour.
+
 The deployed app runs on Cloudflare Workers with OpenNext and uses the D1 binding in `wrangler.jsonc`. Store OAuth and Auth.js secrets as Worker secrets, never in source. Run `npm run deploy` after building and validating changes.
 
 ### First deployment in a new Cloudflare account

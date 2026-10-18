@@ -9,7 +9,16 @@ export const systemSettingDefaults = {
   timeZone: "Asia/Kuala_Lumpur",
   assetTagPrefix: "KICT",
   borrowingPrefix: "BR",
-  maxBorrowingDays: "30"
+  maxBorrowingDays: "30",
+  appIconVersion: "0",
+  pwaEnabled: "true",
+  pwaName: "IIUM Kulliyyah Asset Management System",
+  pwaShortName: "IIUM KAMS",
+  pwaDescription: "Manage assets, borrowing, maintenance, and verification.",
+  pwaThemeColor: "#009a97",
+  pwaBackgroundColor: "#f3f5f9",
+  pwaDisplay: "standalone",
+  pwaOrientation: "any"
 } as const;
 
 export type SystemSettings = { [K in keyof typeof systemSettingDefaults]: string };
