@@ -27,6 +27,14 @@ The service worker caches public JavaScript/CSS and the generic offline page. It
 
 Navigation links do not prefetch entire pages in the background. This reduces unnecessary server rendering and D1 queries when users open a page with many navigation links. The borrowing queue uses pages of 20 requests.
 
+## Dashboard loading states
+
+All 21 dashboard routes have Next.js `loading.tsx` skeletons, including asset details, registration, editing, and administration screens. They match overview, list, form, detail, search, and scanner layouts. Navigation keeps the surrounding dashboard layout while the next page loads; the initial authenticated layout must still complete its authentication checks first.
+
+The placeholders are server-rendered with CSS animation that respects reduced-motion preferences. They do not use timers or trigger extra fetches. Skeletons improve loading feedback and streaming; they do not reduce the CPU required to render the final page or increase the Workers Free limit. Streaming can also add a small amount of rendering work for the fallback itself.
+
+The layout and dashboard share one request-scoped unread notification count instead of querying twice. This avoids duplicate work without caching one user's private data for another user. Background route prefetching remains disabled.
+
 When a new worker is waiting, an update message lets users save their work before **Update and reload**. Turning installation off removes the manifest link and unregisters this app's service worker on the next online page load. It cannot remove an installed app from the user's device.
 
 This implementation provides installability, branding, offline fallback, and update handling. Web push subscriptions, background sync, and offline record editing are not part of this release.

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AccountStatus } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getUnreadNotificationCount } from "@/lib/notification-count";
 import { Sidebar, Topbar } from "@/components/nav";
 import { getSystemSettings } from "@/lib/settings";
 import { getCurrentUser } from "@/lib/current-user";
@@ -12,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (user.status !== AccountStatus.ACTIVE) redirect("/unauthorized");
   const [settings, unreadNotifications] = await Promise.all([
     getSystemSettings(),
-    prisma.notification.count({ where: { userId: user.id, readAt: null } })
+    getUnreadNotificationCount(user.id)
   ]);
 
   return (

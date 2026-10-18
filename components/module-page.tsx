@@ -8,6 +8,7 @@ import { AssetRegistrationForm } from "@/components/asset-registration-form";
 import { prisma } from "@/lib/prisma";
 import { assetScopeFor, can, canAccessModule } from "@/lib/permissions";
 import { getSystemSettings } from "@/lib/settings";
+import { getUnreadNotificationCount } from "@/lib/notification-count";
 
 export type CurrentUser = {
   id: string;
@@ -19,26 +20,26 @@ export type CurrentUser = {
 };
 
 export async function Dashboard({ user }: { user: CurrentUser }) {
-  const settings = await getSystemSettings();
   const assetWhere = user.role === RoleName.SUPERADMIN ? {} : assetScopeFor(user);
   const borrowingWhere = user.role === RoleName.USER ? { requesterId: user.id } : user.role === RoleName.ASSET_LIAISON ? { asset: { departmentId: user.departmentId ?? "__unassigned__" } } : {};
   const maintenanceWhere = user.role === RoleName.USER ? { reportedById: user.id } : user.role === RoleName.ASSET_LIAISON ? { asset: { departmentId: user.departmentId ?? "__unassigned__" } } : {};
-  const [assetValue, statusGroups, pendingUsers, borrowings, maintenance, notifications] = await Promise.all([
+  const [settings, assetValue, statusGroups, pendingUsers, borrowings, maintenance, unreadNotifications] = await Promise.all([
+    getSystemSettings(),
     user.role === RoleName.ASSET_LIAISON ? prisma.asset.aggregate({ where: assetWhere, _sum: { acquisitionCost: true } }) : Promise.resolve(null),
     prisma.asset.groupBy({ by: ["status"], where: assetWhere, _count: { _all: true } }),
     user.role === RoleName.SUPERADMIN ? prisma.user.count({ where: { status: "PENDING" } }) : Promise.resolve(0),
     prisma.borrowingRequest.findMany({ where: borrowingWhere, select: { requestNumber: true, status: true, expectedReturnAt: true, asset: { select: { name: true } }, requester: { select: { name: true } } }, orderBy: { createdAt: "desc" }, take: 8 }),
     prisma.maintenanceRequest.findMany({ where: maintenanceWhere, select: { requestNumber: true, status: true, priority: true, asset: { select: { name: true } } }, orderBy: { createdAt: "desc" }, take: 8 }),
-    prisma.notification.findMany({ where: { userId: user.id }, select: { readAt: true }, orderBy: { createdAt: "desc" }, take: 6 })
+    getUnreadNotificationCount(user.id)
   ]);
   const value = assetValue?._sum.acquisitionCost ?? 0;
   const totalAssets = statusGroups.reduce((sum, group) => sum + group._count._all, 0);
   const statusCounts = Object.fromEntries(statusGroups.map((group) => [group.status, group._count._all])) as Partial<Record<AssetStatus, number>>;
   const metrics = user.role === RoleName.SUPERADMIN
-    ? [["Total assets", totalAssets], ["Pending user approvals", pendingUsers], ["Unread notices", notifications.filter((n) => !n.readAt).length]]
+    ? [["Total assets", totalAssets], ["Pending user approvals", pendingUsers], ["Unread notices", unreadNotifications]]
     : user.role === RoleName.ASSET_LIAISON
       ? [["Department assets", totalAssets], ["Department asset value", `${settings.currency} ${value.toLocaleString()}`], ["Borrowing approvals", borrowings.filter((b) => b.status === "PENDING_APPROVAL").length], ["Open maintenance", maintenance.filter((m) => m.status !== "COMPLETED" && m.status !== "CLOSED").length]]
-      : [["My asset history", totalAssets], ["My active borrowings", borrowings.filter((b) => b.status === "APPROVED" || b.status === "CHECKED_OUT" || b.status === "OVERDUE").length], ["My maintenance requests", maintenance.length], ["Unread notices", notifications.filter((n) => !n.readAt).length]];
+      : [["My asset history", totalAssets], ["My active borrowings", borrowings.filter((b) => b.status === "APPROVED" || b.status === "CHECKED_OUT" || b.status === "OVERDUE").length], ["My maintenance requests", maintenance.length], ["Unread notices", unreadNotifications]];
   const activity = [...borrowings.map((item) => `${item.requestNumber} · ${item.status.replaceAll("_", " ")}`), ...maintenance.map((item) => `${item.requestNumber} · ${item.status.replaceAll("_", " ")}`)].slice(0, 8);
   const dashboardTitle = user.role === RoleName.SUPERADMIN ? "System Dashboard" : user.role === RoleName.ASSET_LIAISON ? "Department Dashboard" : "My Dashboard";
   const dashboardSubtitle = user.role === RoleName.SUPERADMIN ? "System-wide assets, approvals, and alerts." : user.role === RoleName.ASSET_LIAISON ? "Assets and requests limited to your assigned department." : "Your assigned assets, requests, maintenance, and notifications.";
