@@ -5,15 +5,25 @@ import { AccountStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSystemSetting } from "@/lib/settings";
 import { audit } from "@/lib/audit";
+import { getAuthEnvironment } from "@/lib/auth-environment";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth(() => {
+  const environment = getAuthEnvironment();
+  const missing = [
+    !environment.secret && "AUTH_SECRET",
+    !environment.clientId && "GOOGLE_CLIENT_ID or AUTH_GOOGLE_ID",
+    !environment.clientSecret && "GOOGLE_CLIENT_SECRET or AUTH_GOOGLE_SECRET"
+  ].filter(Boolean);
+  if (missing.length) console.error(`[auth] Missing Worker runtime settings: ${missing.join(", ")}. Set these under Settings > Variables and Secrets, not only Build variables.`);
+  return {
+  secret: environment.secret,
   adapter: PrismaAdapter(prisma) as any,
   session: { strategy: "database" },
   trustHost: true,
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? ""
+      clientId: environment.clientId,
+      clientSecret: environment.clientSecret
     })
   ],
   pages: {
@@ -45,7 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
-      const superEmail = process.env.SUPERADMIN_EMAIL;
+      const superEmail = environment.superadminEmail;
       const createdUser = await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -60,4 +70,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     }
   }
+  };
 });
