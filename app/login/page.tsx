@@ -1,6 +1,7 @@
 import { signIn } from "@/lib/auth";
 import { getLoginSettings } from "@/lib/settings";
 import { AppIcon } from "@/components/app-icon";
+import { DeveloperFooter } from "@/components/developer-footer";
 
 // System settings come from the database. Rendering this route at build time
 // makes deployments fail before runtime secrets are available.
@@ -9,7 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage() {
   const settings = await getLoginSettings();
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f3f5f9] p-5">
+    <div className="flex min-h-screen flex-col bg-[#f3f5f9]">
+    <main className="grid flex-1 place-items-center p-5">
       <section className="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_-28px_rgba(15,23,42,0.28)] md:grid-cols-[0.9fr_1.1fr]">
         <div className="relative hidden min-h-[460px] overflow-hidden bg-gradient-to-br from-iium-deep via-iium-green to-[#19aaa4] p-10 text-white md:flex md:flex-col md:justify-between">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full border-[40px] border-white/10" />
@@ -45,5 +47,7 @@ export default async function LoginPage() {
         </div>
       </section>
     </main>
+    <DeveloperFooter />
+    </div>
   );
 }
