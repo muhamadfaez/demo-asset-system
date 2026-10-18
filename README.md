@@ -56,17 +56,9 @@ The deployed app runs on Cloudflare Workers with OpenNext and uses the D1 bindin
 
 ### First deployment in a new Cloudflare account
 
-Use `npm run build` as the Workers Builds build command and `npx wrangler deploy` as the deploy command. The Worker name is `demo-asset-system`.
+Follow [CLOUDFLARE-SETUP.md](CLOUDFLARE-SETUP.md) for the complete steps from a new Cloudflare account to Google sign-in, the Superadmin dashboard, and demo data. It includes troubleshooting for the deployment and authentication errors encountered during setup.
 
-The D1 binding intentionally omits `database_id` so Wrangler can provision `asset-management` in the deployment account. After the first successful deployment, copy the created database ID from the Cloudflare D1 dashboard into the `DB` entry in `wrangler.jsonc` and commit it to keep subsequent deployments pinned to that database.
-
-Before using the app, initialize the new, empty database with `prisma/baseline.sql`. With Wrangler logged into the deployment account and the database ID configured, run:
-
-```bash
-npx wrangler d1 execute asset-management --remote --file=prisma/baseline.sql
-```
-
-Alternatively, execute the contents of `prisma/baseline.sql` in the new database's D1 console. Apply this baseline only once to a new database. Configure `AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the production `AUTH_URL` before signing in; the Google OAuth redirect URI is `<AUTH_URL>/api/auth/callback/google`.
+The checked-in configuration currently targets Worker `demo1` and its initialized D1 database. For another account, change the Worker name, database UUID, and administrator email in your own fork or deployment branch before deploying.
 
 ### Demo records on D1
 
