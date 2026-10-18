@@ -7,10 +7,14 @@ import { createRequire } from "node:module";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
+  let requestContext: (ReturnType<typeof getCloudflareContext> & { assetPrisma?: PrismaClient }) | undefined;
   try {
-    const requestContext = getCloudflareContext() as ReturnType<typeof getCloudflareContext> & { assetPrisma?: PrismaClient };
-    const { env } = requestContext;
-    const binding = (env as unknown as { DB?: ConstructorParameters<typeof PrismaD1>[0] }).DB;
+    requestContext = getCloudflareContext();
+  } catch {
+    // Only absence of a Worker context should select the local Node adapter.
+  }
+  if (requestContext) {
+    const binding = (requestContext.env as unknown as { DB?: ConstructorParameters<typeof PrismaD1>[0] }).DB;
     if (binding) {
       if (requestContext.assetPrisma) return requestContext.assetPrisma;
       const client = new WorkerPrismaClient({
@@ -20,8 +24,7 @@ function createPrismaClient(): PrismaClient {
       requestContext.assetPrisma = client;
       return client;
     }
-  } catch {
-    // Cloudflare bindings are unavailable during local Node.js builds.
+    throw new Error("Cloudflare D1 binding DB is missing.");
   }
 
   const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";

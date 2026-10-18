@@ -1,3 +1,4 @@
+import { getDateFormatter } from "@/lib/date-formatter";
 import Link from "next/link";
 import { Bell, Check, CheckCheck, ExternalLink, HandCoins, UserPlus } from "lucide-react";
 import { RoleName } from "@prisma/client";
@@ -32,5 +33,5 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
 }
 
 function Summary({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) { return <Card className="relative overflow-hidden p-4"><span className={`absolute inset-y-0 left-0 w-1 ${accent ? "bg-iium-gold" : "bg-iium-green"}`} /><p className="text-xs font-semibold text-slate-500">{label}</p><p className="mt-1 text-2xl font-bold text-slate-900">{value}</p></Card>; }
-function Tab({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) { return <Link href={href} className={`border-b-2 px-3 py-2 text-sm font-semibold ${active ? "border-iium-green text-iium-deep" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{children}</Link>; }
-function formatDate(value: Date, timeZone: string) { return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone }).format(value); }
+function Tab({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) { return <Link prefetch={false} href={href} className={`border-b-2 px-3 py-2 text-sm font-semibold ${active ? "border-iium-green text-iium-deep" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{children}</Link>; }
+function formatDate(value: Date, timeZone: string) { return getDateFormatter("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone }).format(value); }

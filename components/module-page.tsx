@@ -1,3 +1,4 @@
+import { getDateFormatter } from "@/lib/date-formatter";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
@@ -136,7 +137,7 @@ export async function AssetsPage({ user, searchParams }: { user: CurrentUser; se
   const subtitle = user.role === RoleName.USER ? "Assets currently or previously assigned to your account, with current assignments shown first." : user.role === RoleName.ASSET_LIAISON ? "Assets restricted to your assigned department." : "Search, filter, approve, archive, duplicate, export, and inspect asset records.";
   return (
     <div className="space-y-5">
-      <Hero title={title} subtitle={subtitle} action={canRegister ? <Link className="rounded-lg bg-iium-green px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href="/assets/new">Register Asset</Link> : undefined} />
+      <Hero title={title} subtitle={subtitle} action={canRegister ? <Link prefetch={false} className="rounded-lg bg-iium-green px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href="/assets/new">Register Asset</Link> : undefined} />
       <FilterBar q={q} status={status} />
       <AssetTable assets={visible} personal={user.role === RoleName.USER} currentUserId={user.id} />
     </div>
@@ -205,7 +206,7 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
   const recordRows: Array<[string, string | number]> = [["Status", asset.status], ["Condition", asset.condition], ["Borrowable", asset.borrowable ? "Yes" : "No"], ["Serial", asset.serialNumber ?? "-"], ...(user.role === RoleName.USER ? [] : [["Assigned to", asset.assignedUser ? `${asset.assignedUser.name} (${asset.assignedUser.staffNo ?? asset.assignedUser.email})` : "Unassigned"] as [string, string], ["Value", `${settings.currency} ${asset.acquisitionCost.toLocaleString()}`] as [string, string]]), ["Location", `${asset.room.floor.building.name} / ${asset.room.name}`]];
   return (
     <div className="space-y-5">
-      <Hero title={asset.name} subtitle={`${asset.tagNumber} · ${asset.category.name} · ${asset.department.name}`} action={<div className="flex gap-2">{can(user, "asset:update") && <Link className="rounded-lg bg-iium-green px-4 py-2 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href={`/assets/${asset.id}/edit`}>Edit asset</Link>}<Link className="rounded-lg border border-iium-green bg-white px-4 py-2 text-sm font-semibold text-iium-green" href={`/api/qr/${asset.id}`}>Open QR</Link></div>} />
+      <Hero title={asset.name} subtitle={`${asset.tagNumber} · ${asset.category.name} · ${asset.department.name}`} action={<div className="flex gap-2">{can(user, "asset:update") && <Link prefetch={false} className="rounded-lg bg-iium-green px-4 py-2 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href={`/assets/${asset.id}/edit`}>Edit asset</Link>}<Link prefetch={false} className="rounded-lg border border-iium-green bg-white px-4 py-2 text-sm font-semibold text-iium-green" href={`/api/qr/${asset.id}`}>Open QR</Link></div>} />
       <section className="grid gap-4 lg:grid-cols-3">
         <Card><h2 className="font-semibold">Record</h2><Facts rows={recordRows} /></Card>
         <Card className="lg:col-span-2"><h2 className="font-semibold">{user.role === RoleName.USER ? "My History" : "History"}</h2><Facts rows={historyRows} /></Card>
@@ -345,7 +346,7 @@ function AssetTable({ assets, personal = false, currentUserId }: { assets: Await
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs font-semibold text-slate-500"><tr>{["Asset", "Tag", "Category", "Department", "Room", ...(personal ? ["Assignment"] : []), "Borrowable", "Status", "Condition"].map((h) => <th className="px-5 py-3" key={h}>{h}</th>)}</tr></thead>
-          <tbody>{assets.map((asset: any) => <tr className="border-t border-slate-100 transition hover:bg-slate-50/70" key={asset.id}><td className="px-5 py-3.5 font-semibold text-iium-deep"><Link href={`/assets/${asset.id}`}>{asset.name}</Link></td><td className="px-5 py-3.5">{asset.tagNumber}</td><td className="px-5 py-3.5">{asset.category.name}</td><td className="px-5 py-3.5">{asset.department.name}</td><td className="px-5 py-3.5">{asset.room.name}</td>{personal && <td className="px-5 py-3.5"><Badge tone={asset.assignedUserId === currentUserId ? "green" : "slate"}>{asset.assignedUserId === currentUserId ? "CURRENT" : "PREVIOUS"}</Badge></td>}<td className="px-5 py-3.5"><Badge tone={asset.borrowable ? "green" : "slate"}>{asset.borrowable ? "YES" : "NO"}</Badge></td><td className="px-5 py-3.5"><Badge>{asset.status}</Badge></td><td className="px-5 py-3.5">{asset.condition}</td></tr>)}</tbody>
+          <tbody>{assets.map((asset: any) => <tr className="border-t border-slate-100 transition hover:bg-slate-50/70" key={asset.id}><td className="px-5 py-3.5 font-semibold text-iium-deep"><Link prefetch={false} href={`/assets/${asset.id}`}>{asset.name}</Link></td><td className="px-5 py-3.5">{asset.tagNumber}</td><td className="px-5 py-3.5">{asset.category.name}</td><td className="px-5 py-3.5">{asset.department.name}</td><td className="px-5 py-3.5">{asset.room.name}</td>{personal && <td className="px-5 py-3.5"><Badge tone={asset.assignedUserId === currentUserId ? "green" : "slate"}>{asset.assignedUserId === currentUserId ? "CURRENT" : "PREVIOUS"}</Badge></td>}<td className="px-5 py-3.5"><Badge tone={asset.borrowable ? "green" : "slate"}>{asset.borrowable ? "YES" : "NO"}</Badge></td><td className="px-5 py-3.5"><Badge>{asset.status}</Badge></td><td className="px-5 py-3.5">{asset.condition}</td></tr>)}</tbody>
         </table>
       </div>
     </Card>
@@ -361,7 +362,7 @@ function FilterBar({ q, status }: { q: string; status: string }) {
         {Object.values(AssetStatus).map((s) => <option key={s}>{s}</option>)}
       </select>
       <button className="rounded-xl bg-iium-green px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-iium-green/20 hover:bg-iium-deep">Apply filters</button>
-      <Link className="rounded-xl border border-white/90 bg-white/60 px-4 py-2 text-center text-sm font-medium text-slate-600 hover:bg-white" href="/assets">Clear</Link>
+      <Link prefetch={false} className="rounded-xl border border-white/90 bg-white/60 px-4 py-2 text-center text-sm font-medium text-slate-600 hover:bg-white" href="/assets">Clear</Link>
     </form>
   );
 }
@@ -371,7 +372,7 @@ function Facts({ rows }: { rows: Array<[string, string | number]> }) {
 }
 
 function formatSystemDate(value: Date, timeZone: string, includeTime = false) {
-  return new Intl.DateTimeFormat("en-GB", {
+  return getDateFormatter("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",

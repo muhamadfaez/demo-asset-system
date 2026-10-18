@@ -276,6 +276,14 @@ Expected: `DEMO-001` through `DEMO-010`. Refresh Assets and the borrowing, trans
 
 ## 11. Diagnose failures
 
+### Workers Free CPU allowance
+
+Workers Free has a 10 ms CPU allowance per request. This application performs Next.js server rendering, authentication, and Prisma database work; successful builds and occasional successful reloads do not prove it will stay within that allowance. In the live installation, Error 1102 was confirmed with `exceededCpu` at about 11 ms, including requests for prefetched pages.
+
+The code disables background page prefetching, reuses date formatters, reads public branding directly through D1, and pages the borrowing queue to reduce work. These optimizations do not increase Cloudflare's hard limit. For reliable hosting when requests still exceed it, enable Workers Paid in the destination account and configure a suitable per-request CPU limit there. This is an account/billing change the owner must perform; do not add a higher `cpu_ms` to a Free installation expecting it to lift the plan limit. See [Cloudflare CPU limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+If a resource-limit failure returns HTML to a borrowing action, the app now displays a retry message instead of attempting to parse that HTML as JSON. If a navigation fails transiently, reload after the deployment finishes; repeated Error 1102 still requires resolving the CPU allowance.
+
 | Symptom | Check and fix |
 |---|---|
 | D1 error `10181`, database not found | Use a UUID from the destination account; confirm `wrangler whoami` and `wrangler d1 list`. |

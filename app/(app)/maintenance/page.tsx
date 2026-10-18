@@ -1,3 +1,4 @@
+import { getDateFormatter } from "@/lib/date-formatter";
 import { AssetStatus, RequestStatus, RoleName } from "@prisma/client";
 import { CalendarClock, CircleDollarSign, Clock3, Wrench } from "lucide-react";
 import { Badge, Card, EmptyState } from "@/components/ui";
@@ -37,4 +38,4 @@ function Summary({ label, value }: { label: string; value: number }) { return <C
 function StatusBadge({ status }: { status: RequestStatus }) { const tone = status === RequestStatus.COMPLETED || status === RequestStatus.CLOSED ? "green" : status === RequestStatus.REJECTED || status === RequestStatus.CANCELLED ? "red" : status === RequestStatus.PENDING_APPROVAL || status === RequestStatus.SUBMITTED || status === RequestStatus.AWAITING_PARTS ? "gold" : "slate"; return <Badge tone={tone}>{status.replaceAll("_", " ")}</Badge>; }
 function Fact({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) { return <div className="rounded-lg border border-slate-100 p-3"><p className="flex items-center gap-1.5 text-xs text-slate-400"><Icon className="h-3.5 w-3.5" />{label}</p><p className="mt-1 text-sm font-semibold text-slate-700">{value}</p></div>; }
 function maintenancePriority(status: RequestStatus) { if (status === RequestStatus.SUBMITTED || status === RequestStatus.PENDING_APPROVAL) return 0; if (status === RequestStatus.APPROVED) return 1; if (status === RequestStatus.IN_PROGRESS || status === RequestStatus.AWAITING_PARTS) return 2; if (status === RequestStatus.COMPLETED) return 3; return 4; }
-function formatDate(value: Date) { return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(value); }
+function formatDate(value: Date) { return getDateFormatter("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(value); }

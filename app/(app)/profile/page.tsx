@@ -1,3 +1,4 @@
+import { getDateFormatter } from "@/lib/date-formatter";
 import { Badge, Card } from "@/components/ui";
 import { UserAvatar } from "@/components/user-avatar";
 import { getCurrentUser } from "@/lib/current-user";
@@ -61,5 +62,5 @@ function ProfileRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ 
 
 function formatDate(value: Date | null, includeTime = false) {
   if (!value) return "Not available";
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", ...(includeTime ? { hour: "2-digit", minute: "2-digit" } : {}) }).format(value);
+  return getDateFormatter("en-GB", { day: "2-digit", month: "short", year: "numeric", ...(includeTime ? { hour: "2-digit", minute: "2-digit" } : {}) }).format(value);
 }

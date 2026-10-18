@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, LogIn, RotateCcw, Send, X } from "lucide-react";
+import { jsonRequest } from "@/lib/json-request";
 
 export function BorrowRequestForm({ assetId, maxDays }: { assetId: string; maxDays: number }) {
   const router = useRouter();
@@ -10,11 +11,13 @@ export function BorrowRequestForm({ assetId, maxDays }: { assetId: string; maxDa
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   async function submit(formData: FormData) {
     setPending(true); setMessage(null);
-    const response = await fetch("/api/workflows/borrowings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ assetId, purpose: formData.get("purpose"), startDate: formData.get("startDate"), expectedReturnAt: formData.get("expectedReturnAt") }) });
-    const result = await response.json();
-    if (!response.ok) { setMessage({ tone: "error", text: result.error ?? "Unable to submit request." }); setPending(false); return; }
-    setMessage({ tone: "success", text: "Borrowing request submitted for approval." });
-    setPending(false); router.refresh();
+    try {
+      await jsonRequest("/api/workflows/borrowings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ assetId, purpose: formData.get("purpose"), startDate: formData.get("startDate"), expectedReturnAt: formData.get("expectedReturnAt") }) });
+      setMessage({ tone: "success", text: "Borrowing request submitted for approval." });
+      router.refresh();
+    } catch (error) {
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Unable to reach the server. Please try again." });
+    } finally { setPending(false); }
   }
   return (
     <form action={submit} className="mt-4 grid gap-3 border-t border-slate-100 pt-4">
@@ -34,10 +37,12 @@ export function BorrowingReviewActions({ requestId, status }: { requestId: strin
   async function act(decision: "approve" | "reject" | "checkout" | "return", formData: FormData) {
     setPending(true); setMessage("");
     const reason = formData.get("reason");
-    const response = await fetch("/api/workflows/borrowings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: requestId, decision, ...(typeof reason === "string" && reason.trim() ? { reason: reason.trim() } : {}) }) });
-    const result = await response.json();
-    if (!response.ok) { setMessage(result.error ?? "Unable to update request."); setPending(false); return; }
-    setPending(false); router.refresh();
+    try {
+      await jsonRequest("/api/workflows/borrowings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: requestId, decision, ...(typeof reason === "string" && reason.trim() ? { reason: reason.trim() } : {}) }) });
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to reach the server. Please try again.");
+    } finally { setPending(false); }
   }
   const awaitingReview = status === "PENDING_APPROVAL" || status === "SUBMITTED";
   if (!awaitingReview && status !== "APPROVED" && status !== "CHECKED_OUT" && status !== "OVERDUE") return null;

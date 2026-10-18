@@ -48,7 +48,7 @@ export function Sidebar({ role, organisationName, systemName, appIconVersion }: 
               <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{section}</p>
               <div className="space-y-1">{items.map((item) => {
                 const active = isActive(pathname, item.href);
-                return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-iium-deep", active && "bg-gradient-to-r from-iium-deep to-iium-green text-white shadow-lift hover:text-white")}>
+                return <Link prefetch={false} key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-iium-deep", active && "bg-gradient-to-r from-iium-deep to-iium-green text-white shadow-lift hover:text-white")}>
                   <item.icon className="h-[18px] w-[18px]" />{navLabel(item.href, item.label, role)}
                 </Link>;
               })}</div>
@@ -66,12 +66,12 @@ export function Sidebar({ role, organisationName, systemName, appIconVersion }: 
           {navSections.map((section) => {
             const items = moreItems.filter((item) => item.section === section);
             if (!items.length) return null;
-            return <div key={section} className="mb-4 last:mb-0"><p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{section}</p><div className="grid grid-cols-2 gap-2">{items.map((item) => <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-3 text-xs font-medium text-slate-700", isActive(pathname, item.href) && "bg-iium-green text-white")}><item.icon className="h-4 w-4 shrink-0" />{navLabel(item.href, item.label, role)}</Link>)}</div></div>;
+            return <div key={section} className="mb-4 last:mb-0"><p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{section}</p><div className="grid grid-cols-2 gap-2">{items.map((item) => <Link prefetch={false} key={item.href} href={item.href} onClick={() => setMoreOpen(false)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-2 rounded-lg bg-slate-50 px-3 text-xs font-medium text-slate-700", isActive(pathname, item.href) && "bg-iium-green text-white")}><item.icon className="h-4 w-4 shrink-0" />{navLabel(item.href, item.label, role)}</Link>)}</div></div>;
           })}
         </div>
       </>}
       <nav className="fixed inset-x-2 z-40 grid grid-cols-5 gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur-xl lg:hidden" style={{ bottom: "calc(0.5rem + env(safe-area-inset-bottom))" }} aria-label="Mobile navigation">
-        {mobileItems.map((item) => <Link key={item.href} href={item.href} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={cn("flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] font-semibold text-slate-500", isActive(pathname, item.href) && "bg-iium-green text-white")}><item.icon className="h-5 w-5" /><span className="truncate">{item.label}</span></Link>)}
+        {mobileItems.map((item) => <Link prefetch={false} key={item.href} href={item.href} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={cn("flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] font-semibold text-slate-500", isActive(pathname, item.href) && "bg-iium-green text-white")}><item.icon className="h-5 w-5" /><span className="truncate">{item.label}</span></Link>)}
         <button type="button" onClick={() => setMoreOpen((open) => !open)} aria-expanded={moreOpen} aria-controls="mobile-more-menu" className={cn("flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] font-semibold text-slate-500", (moreOpen || moreActive) && "bg-iium-green text-white")}><Menu className="h-5 w-5" /><span>More</span></button>
       </nav>
     </>
@@ -101,10 +101,10 @@ export function Topbar({ name, image, role, systemName, unreadNotifications }: {
           <input name="q" type="search" required minLength={2} maxLength={100} aria-label="Global search" className="w-64 border-white/25 bg-white/10 py-2 pl-9 text-white shadow-none placeholder:text-white/60 hover:border-white/40 hover:bg-white/15 focus:border-white/60 focus:ring-white/10" placeholder="Search assets, people, pages..." />
           <button type="submit" className="sr-only">Search</button>
         </form>
-        <Link href="/search" aria-label="Search" className="rounded-lg bg-white/10 p-2.5 md:hidden"><Search className="h-4 w-4" /></Link>
+        <Link prefetch={false} href="/search" aria-label="Search" className="rounded-lg bg-white/10 p-2.5 md:hidden"><Search className="h-4 w-4" /></Link>
         <InstallAppButton />
-        <Link href="/notifications" className="relative rounded-lg bg-white/10 p-2.5 text-white hover:bg-white/20" aria-label={`${unreadNotifications} unread notifications`}><Bell className="h-4 w-4" />{unreadNotifications > 0 && <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-iium-green bg-iium-gold px-1 text-[9px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link>
-        <Link href="/profile" className="ml-1 rounded-full" aria-label={`${name}, ${role}`}><UserAvatar name={name} image={image} priority className="border-2 border-white/70 shadow-sm" /></Link>
+        <Link prefetch={false} href="/notifications" className="relative rounded-lg bg-white/10 p-2.5 text-white hover:bg-white/20" aria-label={`${unreadNotifications} unread notifications`}><Bell className="h-4 w-4" />{unreadNotifications > 0 && <span className="absolute -right-1.5 -top-1.5 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-iium-green bg-iium-gold px-1 text-[9px] font-bold text-white">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link>
+        <Link prefetch={false} href="/profile" className="ml-1 rounded-full" aria-label={`${name}, ${role}`}><UserAvatar name={name} image={image} priority className="border-2 border-white/70 shadow-sm" /></Link>
         <div className="lg:hidden"><LogoutButton compact className="border-white/20 bg-white/10 text-white shadow-none hover:bg-white/20 hover:text-white" /></div>
       </div>
     </header>

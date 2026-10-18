@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
+import { getD1Binding } from "@/lib/cloudflare-db";
 
 export const systemSettingDefaults = {
   systemName: "IIUM Kulliyyah Asset Management System",
@@ -25,9 +26,13 @@ export type SystemSettings = { [K in keyof typeof systemSettingDefaults]: string
 export type SystemSettingKey = keyof SystemSettings;
 
 export const getSystemSettings = cache(async (): Promise<SystemSettings> => {
-  const rows = await prisma.systemSetting.findMany({
-    where: { key: { in: Object.keys(systemSettingDefaults) } }
-  });
+  const keys = Object.keys(systemSettingDefaults);
+  const binding = getD1Binding();
+  // These public settings are simple key/value reads. Avoid starting Prisma's
+  // query compiler for every manifest, icon, and login metadata request.
+  const rows = binding
+    ? (await binding.prepare(`SELECT key, value FROM SystemSetting WHERE key IN (${keys.map(() => "?").join(",")})`).bind(...keys).all<{ key: string; value: string }>()).results
+    : await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
   return { ...systemSettingDefaults, ...Object.fromEntries(rows.map((row) => [row.key, row.value])) };
 });
 

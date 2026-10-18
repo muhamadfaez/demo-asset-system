@@ -25,6 +25,8 @@ The download button in the header opens the installation prompt when supported. 
 
 The service worker caches public JavaScript/CSS and the generic offline page. It never caches authenticated HTML, API/authentication responses, or asset records. Offline navigation displays a reconnect page, and open pages show a connection warning. Changes are not queued offline; reconnect and submit them online.
 
+Navigation links do not prefetch entire pages in the background. This reduces unnecessary server rendering and D1 queries when users open a page with many navigation links. The borrowing queue uses pages of 20 requests.
+
 When a new worker is waiting, an update message lets users save their work before **Update and reload**. Turning installation off removes the manifest link and unregisters this app's service worker on the next online page load. It cannot remove an installed app from the user's device.
 
 This implementation provides installability, branding, offline fallback, and update handling. Web push subscriptions, background sync, and offline record editing are not part of this release.
