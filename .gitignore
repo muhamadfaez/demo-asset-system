@@ -1,0 +1,17 @@
+node_modules
+.next
+.open-next
+.wrangler
+out
+*.log
+*.tsbuildinfo
+.env
+.dev.vars
+!.env.example
+prisma/dev.db
+prisma/dev.db-journal
+presentation/source/__pycache__/
+presentation/source/audio/
+presentation/source/preview-*.jpg
+presentation/source/final-video-check.jpg
+presentation/source/voice-test.mp3

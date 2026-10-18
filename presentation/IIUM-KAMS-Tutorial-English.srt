@@ -1,0 +1,99 @@
+1
+00:00:00,000 --> 00:00:07,000
+A quick walkthrough of IIUM KAMS, using a sample workspace.
+
+2
+00:00:07,000 --> 00:00:14,000
+Use your permitted Google account. New staff accounts require administrator approval.
+
+3
+00:00:14,000 --> 00:00:23,000
+Check asset totals, pending approvals, and the colour-coded asset status chart.
+
+4
+00:00:23,000 --> 00:00:27,000
+Open Assets and search by asset tag, name, or serial number.
+
+5
+00:00:27,000 --> 00:00:32,000
+Select the result to review its location, status, assignment, and history.
+
+6
+00:00:32,000 --> 00:00:39,000
+Choose Register Asset. Scan its label or enter the tag and serial number manually.
+
+7
+00:00:39,000 --> 00:00:45,000
+Choose the department and room, set availability, then select Register asset.
+
+8
+00:00:45,000 --> 00:00:52,000
+Open Scan Asset. Use the camera, upload a label photo, or type the code.
+
+9
+00:00:52,000 --> 00:00:57,000
+A recognised asset code opens the matching asset record.
+
+10
+00:00:57,000 --> 00:01:02,000
+If the code is not recorded, the system opens registration with the code captured.
+
+11
+00:01:02,000 --> 00:01:09,000
+Open Borrowing, explain the purpose, and choose the start and return dates.
+
+12
+00:01:09,000 --> 00:01:15,000
+Administrators review the request and approve it, or reject it with a reason.
+
+13
+00:01:15,000 --> 00:01:20,000
+After approval, check out the asset. Mark it returned when the borrowing ends.
+
+14
+00:01:20,000 --> 00:01:27,000
+Staff select an assigned asset, the incident type, discovery time, and location.
+
+15
+00:01:27,000 --> 00:01:31,000
+The report receives a reference number and appears in the user’s incident history.
+
+16
+00:01:31,000 --> 00:01:38,000
+Enter the resolution, parts replaced, actual cost, and downtime. Select Complete work.
+
+17
+00:01:38,000 --> 00:01:44,000
+The request shows its resolution and completed status. Close the request after review.
+
+18
+00:01:44,000 --> 00:01:50,000
+In Locations, add or edit Kulliyyahs, departments, and units.
+
+19
+00:01:50,000 --> 00:01:55,000
+Build the location hierarchy: campus, building, floor, and room.
+
+20
+00:01:55,000 --> 00:02:01,000
+Open Master Data, add a category, or select Edit beside an existing category.
+
+21
+00:02:01,000 --> 00:02:08,000
+Administrators approve accounts and manage roles, departments, and personal information.
+
+22
+00:02:08,000 --> 00:02:14,000
+Regular users can update their Position, Phone number, and Staff ID from Profile.
+
+23
+00:02:14,000 --> 00:02:22,000
+Open Reports and export the asset register as CSV or PDF for review and sharing.
+
+24
+00:02:22,000 --> 00:02:29,000
+The mobile view keeps common tasks in the bottom menu for quick access.
+
+25
+00:02:29,000 --> 00:02:34,000
+Set up your locations, register your assets, and invite your team.

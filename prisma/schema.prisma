@@ -1,0 +1,524 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  SUPERADMIN
+  ASSET_LIAISON
+  USER
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  INACTIVE
+}
+
+enum AssetStatus {
+  DRAFT
+  PENDING_APPROVAL
+  AVAILABLE
+  ASSIGNED
+  BORROWED
+  UNDER_MAINTENANCE
+  DAMAGED
+  MISSING
+  LOST
+  TRANSFERRED
+  PENDING_DISPOSAL
+  DISPOSED
+  ARCHIVED
+}
+
+enum AssetCondition {
+  NEW
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+  UNSERVICEABLE
+}
+
+enum RequestStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CHECKED_OUT
+  RETURNED
+  OVERDUE
+  CANCELLED
+  CLOSED
+  UNDER_REVIEW
+  ASSIGNED
+  IN_PROGRESS
+  AWAITING_PARTS
+  COMPLETED
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  emailVerified  DateTime?
+  image          String?
+  staffNo        String?
+  phone          String?
+  position       String?
+  role           RoleName      @default(USER)
+  status         AccountStatus @default(PENDING)
+  lastLoginAt    DateTime?
+  kulliyyahId    String?
+  departmentId   String?
+  unitId         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  kulliyyah      Kulliyyah?    @relation(fields: [kulliyyahId], references: [id])
+  department     Department?   @relation(fields: [departmentId], references: [id])
+  unit           Unit?         @relation(fields: [unitId], references: [id])
+  assignedAssets Asset[]       @relation("AssignedUser")
+  liaisonAssets  Asset[]       @relation("LiaisonUser")
+  assignments    AssetAssignment[] @relation("AssignmentUser")
+  borrowings     BorrowingRequest[] @relation("Borrower")
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+
+  @@index([role, status])
+  @@index([departmentId])
+}
+
+model Kulliyyah {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  code        String       @unique
+  active      Boolean      @default(true)
+  departments Department[]
+  users       User[]
+  assets      Asset[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Department {
+  id          String    @id @default(cuid())
+  name        String
+  code        String
+  active      Boolean   @default(true)
+  kulliyyahId String
+  kulliyyah   Kulliyyah @relation(fields: [kulliyyahId], references: [id])
+  units       Unit[]
+  users       User[]
+  assets      Asset[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([kulliyyahId, code])
+}
+
+model Unit {
+  id           String     @id @default(cuid())
+  name         String
+  code         String
+  active       Boolean    @default(true)
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  users        User[]
+  assets       Asset[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([departmentId, code])
+}
+
+model Campus {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  active    Boolean    @default(true)
+  buildings Building[]
+}
+
+model Building {
+  id        String  @id @default(cuid())
+  name      String
+  code      String
+  campusId  String
+  active    Boolean @default(true)
+  campus    Campus  @relation(fields: [campusId], references: [id])
+  floors    Floor[]
+  assets    Asset[]
+
+  @@unique([campusId, code])
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  name       String
+  buildingId String
+  active     Boolean  @default(true)
+  building   Building @relation(fields: [buildingId], references: [id])
+  rooms      Room[]
+}
+
+model Room {
+  id       String  @id @default(cuid())
+  name     String
+  code     String
+  floorId  String
+  active   Boolean @default(true)
+  floor    Floor   @relation(fields: [floorId], references: [id])
+  assets   Asset[]
+
+  @@unique([floorId, code])
+}
+
+model AssetCategory {
+  id            String             @id @default(cuid())
+  name          String             @unique
+  subcategories AssetSubcategory[]
+  assets        Asset[]
+}
+
+model AssetSubcategory {
+  id         String        @id @default(cuid())
+  name       String
+  categoryId String
+  category   AssetCategory @relation(fields: [categoryId], references: [id])
+  assets     Asset[]
+
+  @@unique([categoryId, name])
+}
+
+model Brand {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  models String?
+  assets Asset[]
+}
+
+model Supplier {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  email    String?
+  phone    String?
+  assets   Asset[]
+}
+
+model FundingSource {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  assets Asset[]
+}
+
+model Asset {
+  id                    String          @id @default(cuid())
+  tagNumber             String          @unique
+  iiumReferenceNumber   String?
+  name                  String
+  description           String?
+  model                 String?
+  serialNumber          String?         @unique
+  purchaseOrderNumber   String?
+  invoiceNumber         String?
+  acquisitionDate       DateTime?
+  acquisitionCost       Float           @default(0)
+  warrantyStartDate     DateTime?
+  warrantyExpiryDate    DateTime?
+  expectedUsefulLife    Int?
+  depreciationMethod    String?
+  currentBookValue      Float           @default(0)
+  status                AssetStatus     @default(DRAFT)
+  condition             AssetCondition  @default(GOOD)
+  borrowable            Boolean         @default(true)
+  riskLevel             String          @default("Medium")
+  lastVerificationDate  DateTime?
+  nextVerificationDate  DateTime?
+  notes                 String?
+  archivedAt            DateTime?
+  categoryId            String
+  subcategoryId         String?
+  brandId               String?
+  supplierId            String?
+  fundingSourceId       String?
+  kulliyyahId           String
+  departmentId          String
+  unitId                String?
+  buildingId            String
+  roomId                String
+  assignedUserId        String?
+  liaisonId             String?
+  createdById           String?
+  updatedById           String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  category              AssetCategory   @relation(fields: [categoryId], references: [id])
+  subcategory           AssetSubcategory? @relation(fields: [subcategoryId], references: [id])
+  brand                 Brand?          @relation(fields: [brandId], references: [id])
+  supplier              Supplier?       @relation(fields: [supplierId], references: [id])
+  fundingSource         FundingSource?  @relation(fields: [fundingSourceId], references: [id])
+  kulliyyah             Kulliyyah       @relation(fields: [kulliyyahId], references: [id])
+  department            Department      @relation(fields: [departmentId], references: [id])
+  unit                  Unit?           @relation(fields: [unitId], references: [id])
+  building              Building        @relation(fields: [buildingId], references: [id])
+  room                  Room            @relation(fields: [roomId], references: [id])
+  assignedUser          User?           @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  liaison               User?           @relation("LiaisonUser", fields: [liaisonId], references: [id])
+  images                AssetImage[]
+  documents             AssetDocument[]
+  assignments           AssetAssignment[]
+  borrowings            BorrowingRequest[]
+  transfers             AssetTransfer[]
+  maintenance           MaintenanceRequest[]
+  verifications         AssetVerification[]
+  incidents             AssetIncident[]
+  disposals             DisposalRequest[]
+
+  @@index([status, condition])
+  @@index([departmentId, roomId])
+}
+
+model AssetImage {
+  id        String   @id @default(cuid())
+  assetId   String
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model AssetDocument {
+  id        String   @id @default(cuid())
+  assetId   String
+  fileName  String
+  fileUrl   String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model AssetAssignment {
+  id               String    @id @default(cuid())
+  assetId          String
+  assignedUserId   String?
+  assignedLocation String?
+  assignmentDate   DateTime  @default(now())
+  expectedReturnAt DateTime?
+  purpose          String
+  notes            String?
+  assignedById     String
+  acceptanceStatus String    @default("Pending")
+  acceptedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  asset            Asset     @relation(fields: [assetId], references: [id])
+  assignedUser     User?     @relation("AssignmentUser", fields: [assignedUserId], references: [id])
+}
+
+model BorrowingRequest {
+  id               String        @id @default(cuid())
+  requestNumber    String        @unique
+  requesterId      String
+  assetId          String
+  purpose          String
+  startDate        DateTime
+  expectedReturnAt DateTime
+  actualReturnAt   DateTime?
+  status           RequestStatus @default(SUBMITTED)
+  approvedById     String?
+  approvedAt       DateTime?
+  rejectionReason  String?
+  checkoutCondition String?
+  returnCondition  String?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  requester        User          @relation("Borrower", fields: [requesterId], references: [id])
+  asset            Asset         @relation(fields: [assetId], references: [id])
+
+  @@index([assetId, startDate, expectedReturnAt, status])
+}
+
+model AssetTransfer {
+  id               String        @id @default(cuid())
+  transferNumber   String        @unique
+  assetId          String
+  currentLocation  String
+  newLocation      String
+  currentCustodian String?
+  newCustodian     String?
+  reason           String
+  requestedById    String
+  approvedById     String?
+  approvedAt       DateTime?
+  transferDate     DateTime?
+  status           RequestStatus @default(SUBMITTED)
+  rejectionReason  String?
+  createdAt        DateTime      @default(now())
+  asset            Asset         @relation(fields: [assetId], references: [id])
+}
+
+model MaintenanceRequest {
+  id              String        @id @default(cuid())
+  requestNumber   String        @unique
+  assetId         String
+  reportedById    String
+  issueCategory   String
+  description     String
+  priority        String
+  type            String
+  vendor          String?
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  estimatedCost   Float         @default(0)
+  actualCost      Float         @default(0)
+  status          RequestStatus @default(SUBMITTED)
+  resolution      String?
+  partsReplaced   String?
+  downtimeHours   Float         @default(0)
+  nextScheduledAt DateTime?
+  createdAt       DateTime      @default(now())
+  asset           Asset         @relation(fields: [assetId], references: [id])
+}
+
+model VerificationCampaign {
+  id           String              @id @default(cuid())
+  name         String
+  kulliyyahId  String?
+  departmentId String?
+  assignedToId String?
+  startDate    DateTime
+  endDate      DateTime
+  status       String              @default("Pending")
+  createdAt    DateTime            @default(now())
+  checks       AssetVerification[]
+}
+
+model AssetVerification {
+  id          String               @id @default(cuid())
+  campaignId  String
+  assetId     String
+  verifierId  String
+  status      String
+  remarks     String?
+  checkedAt   DateTime             @default(now())
+  campaign    VerificationCampaign @relation(fields: [campaignId], references: [id])
+  asset       Asset                @relation(fields: [assetId], references: [id])
+}
+
+model AssetIncident {
+  id                 String        @id @default(cuid())
+  incidentNumber     String        @unique
+  assetId            String
+  type               String
+  discoveredAt       DateTime
+  location           String
+  reportedById       String
+  description        String
+  policeReportNumber String?
+  investigationNotes String?
+  actionTaken        String?
+  finalOutcome       String?
+  status             String        @default("Reported")
+  createdAt          DateTime      @default(now())
+  asset              Asset         @relation(fields: [assetId], references: [id])
+}
+
+model DisposalRequest {
+  id             String        @id @default(cuid())
+  requestNumber  String        @unique
+  assetId        String
+  reason         String
+  currentCondition String
+  method         String
+  requestedById  String
+  reviewNotes    String?
+  approvedById   String?
+  approvedAt     DateTime?
+  disposalDate   DateTime?
+  disposalValue  Float         @default(0)
+  recipient      String?
+  status         RequestStatus @default(SUBMITTED)
+  createdAt      DateTime      @default(now())
+  asset          Asset         @relation(fields: [assetId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  userId         String?
+  action         String
+  module         String
+  recordType     String
+  recordId       String?
+  previousValues String?
+  newValues      String?
+  ipAddress      String?
+  userAgent      String?
+  success        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([module, recordType, createdAt])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

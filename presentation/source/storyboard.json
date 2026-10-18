@@ -1,0 +1,329 @@
+[
+  {
+    "image": "dashboard",
+    "dur": 7,
+    "chapter": "WELCOME",
+    "title": "Your asset workflow, in one place",
+    "caption": "A quick walkthrough of IIUM KAMS, using a sample workspace.",
+    "steps": [
+      "Register and locate",
+      "Request and resolve",
+      "Manage and report"
+    ],
+    "intro": true
+  },
+  {
+    "image": "login",
+    "dur": 7,
+    "chapter": "01  GET STARTED",
+    "title": "Sign in to your workspace",
+    "caption": "Use your permitted Google account. New staff accounts require administrator approval.",
+    "steps": [
+      "Open the system",
+      "Continue with Google",
+      "Use your approved account"
+    ],
+    "role": "ALL USERS",
+    "full": true
+  },
+  {
+    "image": "dashboard",
+    "dur": 9,
+    "chapter": "01  GET STARTED",
+    "title": "Start with the dashboard",
+    "caption": "Check asset totals, pending approvals, and the colour-coded asset status chart.",
+    "steps": [
+      "Review key totals",
+      "Read the status chart",
+      "Check recent requests"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "assets",
+    "dur": 4,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Find the asset you need",
+    "caption": "Open Assets and search by asset tag, name, or serial number.",
+    "steps": [
+      "Open Assets",
+      "Enter an identifier",
+      "Apply the filter"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "asset-search",
+    "dur": 5,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Open a matching record",
+    "caption": "Select the result to review its location, status, assignment, and history.",
+    "steps": [
+      "Review the result",
+      "Open the asset",
+      "Inspect its details"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "registration",
+    "dur": 7,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Register a new asset",
+    "caption": "Choose Register Asset. Scan its label or enter the tag and serial number manually.",
+    "steps": [
+      "Capture the identifier",
+      "Enter asset details",
+      "Choose its category"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "registration-save",
+    "dur": 6,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Save a complete asset record",
+    "caption": "Choose the department and room, set availability, then select Register asset.",
+    "steps": [
+      "Set ownership",
+      "Choose the location",
+      "Register the asset"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "scanner",
+    "dur": 7,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Look up assets by barcode or QR",
+    "caption": "Open Scan Asset. Use the camera, upload a label photo, or type the code.",
+    "steps": [
+      "Open Scan Asset",
+      "Capture or enter a code",
+      "Look up the asset"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "scan-found",
+    "dur": 5,
+    "chapter": "02  REGISTER & FIND",
+    "title": "Existing code? View the details",
+    "caption": "A recognised asset code opens the matching asset record.",
+    "steps": [
+      "Match the identifier",
+      "Open the record",
+      "Review its details"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "scan-new",
+    "dur": 5,
+    "chapter": "02  REGISTER & FIND",
+    "title": "New code? Start registration",
+    "caption": "If the code is not recorded, the system opens registration with the code captured.",
+    "steps": [
+      "Identify a new asset",
+      "Review the captured code",
+      "Complete registration"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "borrow-request",
+    "dur": 7,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Staff can request available assets",
+    "caption": "Open Borrowing, explain the purpose, and choose the start and return dates.",
+    "steps": [
+      "Choose an available asset",
+      "Set purpose and dates",
+      "Request to borrow"
+    ],
+    "role": "REGULAR USER"
+  },
+  {
+    "image": "borrow-review",
+    "dur": 6,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Review the borrowing request",
+    "caption": "Administrators review the request and approve it, or reject it with a reason.",
+    "steps": [
+      "Review the request",
+      "Check purpose and dates",
+      "Approve or reject"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "borrow-approved",
+    "dur": 5,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Track checkout and return",
+    "caption": "After approval, check out the asset. Mark it returned when the borrowing ends.",
+    "steps": [
+      "Approve the request",
+      "Check out the asset",
+      "Record its return"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "incident-form",
+    "dur": 7,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Report an asset incident",
+    "caption": "Staff select an assigned asset, the incident type, discovery time, and location.",
+    "steps": [
+      "Choose the assigned asset",
+      "Describe what happened",
+      "Submit the incident"
+    ],
+    "role": "REGULAR USER"
+  },
+  {
+    "image": "incident-submitted",
+    "dur": 4,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Keep a record of the incident",
+    "caption": "The report receives a reference number and appears in the user’s incident history.",
+    "steps": [
+      "Receive a reference",
+      "Track the report",
+      "Keep the details together"
+    ],
+    "role": "REGULAR USER"
+  },
+  {
+    "image": "maintenance-work",
+    "dur": 7,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Record completed maintenance",
+    "caption": "Enter the resolution, parts replaced, actual cost, and downtime. Select Complete work.",
+    "steps": [
+      "Record the repair",
+      "Add cost and downtime",
+      "Complete the work"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "maintenance-completed",
+    "dur": 6,
+    "chapter": "03  REQUEST & RESOLVE",
+    "title": "Review the completed work",
+    "caption": "The request shows its resolution and completed status. Close the request after review.",
+    "steps": [
+      "Review the resolution",
+      "Confirm completion",
+      "Close the request"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "locations",
+    "dur": 6,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Set up your organisation",
+    "caption": "In Locations, add or edit Kulliyyahs, departments, and units.",
+    "steps": [
+      "Open Locations",
+      "Add an organisation record",
+      "Edit its name and code"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "rooms",
+    "dur": 5,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Define where assets belong",
+    "caption": "Build the location hierarchy: campus, building, floor, and room.",
+    "steps": [
+      "Choose the parent location",
+      "Add a room or building",
+      "Use it in asset records"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "categories",
+    "dur": 6,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Maintain your asset categories",
+    "caption": "Open Master Data, add a category, or select Edit beside an existing category.",
+    "steps": [
+      "Open Master Data",
+      "Add a category",
+      "Edit an existing record"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "users",
+    "dur": 7,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Manage staff access and details",
+    "caption": "Administrators approve accounts and manage roles, departments, and personal information.",
+    "steps": [
+      "Review new accounts",
+      "Manage role and department",
+      "Edit personal information"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "profile",
+    "dur": 6,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Let staff maintain their profile",
+    "caption": "Regular users can update their Position, Phone number, and Staff ID from Profile.",
+    "steps": [
+      "Open Profile",
+      "Update the permitted fields",
+      "Save personal details"
+    ],
+    "role": "REGULAR USER"
+  },
+  {
+    "image": "reports",
+    "dur": 8,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Take your asset register with you",
+    "caption": "Open Reports and export the asset register as CSV or PDF for review and sharing.",
+    "steps": [
+      "Open Reports",
+      "Review the register",
+      "Export CSV or PDF"
+    ],
+    "role": "ADMINISTRATOR"
+  },
+  {
+    "image": "mobile",
+    "dur": 7,
+    "chapter": "04  ADMINISTER & REPORT",
+    "title": "Use the system on mobile",
+    "caption": "The mobile view keeps common tasks in the bottom menu for quick access.",
+    "steps": [
+      "Open on your phone",
+      "Use the bottom navigation",
+      "Review assets and requests"
+    ],
+    "role": "REGULAR USER",
+    "mobile": true
+  },
+  {
+    "image": "dashboard",
+    "dur": 5,
+    "chapter": "READY TO BEGIN",
+    "title": "Bring your assets into one workspace",
+    "caption": "Set up your locations, register your assets, and invite your team.",
+    "steps": [
+      "Set up locations",
+      "Register your assets",
+      "Invite your team"
+    ],
+    "outro": true
+  }
+]

@@ -1,0 +1,305 @@
+{
+  "login": {
+    "url": "/login",
+    "box": {
+      "x": 795.296875,
+      "y": 420,
+      "width": 411.703125,
+      "height": 48
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "dashboard": {
+    "url": "/dashboard",
+    "box": {
+      "x": 309,
+      "y": 363,
+      "width": 240,
+      "height": 240
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "assets": {
+    "url": "/assets",
+    "box": {
+      "x": 305,
+      "y": 217,
+      "width": 856.953125,
+      "height": 43
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "asset-search": {
+    "url": "/assets?q=KICT-0008&status=",
+    "box": null,
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "asset-detail": {
+    "url": "/assets/cmuvjru40001ndovhi8ardbqt",
+    "box": {
+      "x": 1392.09375,
+      "y": 138,
+      "width": 92.125,
+      "height": 38
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "scanner": {
+    "url": "/qr-scanner",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 1171.90625,
+      "y": 735.25,
+      "width": 127.09375,
+      "height": 40
+    }
+  },
+  "scan-found": {
+    "url": "/assets/cmuvjru40001ndovhi8ardbqt",
+    "box": null,
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "scan-new": {
+    "url": "/assets/new?code=KICT-DEMO-NEW",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 966.921875,
+      "y": 704.71875,
+      "width": 161.375,
+      "height": 42
+    }
+  },
+  "maintenance-work": {
+    "url": "/maintenance",
+    "box": {
+      "x": 972.40625,
+      "y": 713,
+      "width": 126.875,
+      "height": 34
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "maintenance-completed": {
+    "url": "/maintenance",
+    "box": {
+      "x": 839.390625,
+      "y": 565,
+      "width": 117.4375,
+      "height": 32
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "locations": {
+    "url": "/locations",
+    "box": null,
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "rooms": {
+    "url": "/locations",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": null
+  },
+  "categories": {
+    "url": "/master-data",
+    "box": {
+      "x": 322,
+      "y": 441,
+      "width": 92.90625,
+      "height": 32
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "users": {
+    "url": "/users",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 309,
+      "y": 463,
+      "width": 598,
+      "height": 350
+    }
+  },
+  "profile": {
+    "url": "/profile",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 309,
+      "y": 494,
+      "width": 598,
+      "height": 253
+    }
+  },
+  "reports": {
+    "url": "/reports",
+    "box": {
+      "x": 402.859375,
+      "y": 116,
+      "width": 104.8125,
+      "height": 38
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "audit": {
+    "url": "/audit-logs",
+    "box": null,
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "mobile": {
+    "url": "/dashboard",
+    "box": null,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "registration": {
+    "url": "/assets/new",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 309,
+      "y": 364,
+      "width": 619,
+      "height": 42
+    }
+  },
+  "registration-save": {
+    "url": "/assets/new",
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    },
+    "box": {
+      "x": 1411.765625,
+      "y": 705,
+      "width": 151.234375,
+      "height": 42
+    }
+  },
+  "registered-asset": {
+    "url": "/assets/cmuvk39v80002k0vhzdhszwfe",
+    "box": null,
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "borrow-request": {
+    "url": "/borrowings",
+    "box": {
+      "x": 309,
+      "y": 686.5,
+      "width": 598,
+      "height": 40
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "borrow-review": {
+    "url": "/borrowings",
+    "box": {
+      "x": 309,
+      "y": 642,
+      "width": 90.390625,
+      "height": 34
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "borrow-approved": {
+    "url": "/borrowings",
+    "box": {
+      "x": 309,
+      "y": 588,
+      "width": 129.1875,
+      "height": 32
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "incident-form": {
+    "url": "/incidents",
+    "box": {
+      "x": 309,
+      "y": 692,
+      "width": 1254,
+      "height": 40
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  },
+  "incident-submitted": {
+    "url": "/incidents",
+    "box": {
+      "x": 309,
+      "y": 692,
+      "width": 1254,
+      "height": 44
+    },
+    "viewport": {
+      "width": 1600,
+      "height": 800
+    }
+  }
+}
