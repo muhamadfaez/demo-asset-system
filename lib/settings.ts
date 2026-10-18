@@ -13,8 +13,6 @@ export const systemSettingDefaults = {
   maxBorrowingDays: "30",
   appIconVersion: "0",
   pwaEnabled: "true",
-  pwaName: "IIUM Kulliyyah Asset Management System",
-  pwaShortName: "IIUM KAMS",
   pwaDescription: "Manage assets, borrowing, maintenance, and verification.",
   pwaThemeColor: "#009a97",
   pwaBackgroundColor: "#f3f5f9",

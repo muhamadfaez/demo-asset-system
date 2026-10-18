@@ -155,8 +155,6 @@ describe("business rules", () => {
       borrowingPrefix: "br",
       maxBorrowingDays: "30",
       pwaEnabled: "true",
-      pwaName: "IIUM Asset System",
-      pwaShortName: "IIUM KAMS",
       pwaDescription: "Manage campus assets",
       pwaThemeColor: "#009a97",
       pwaBackgroundColor: "#f3f5f9",

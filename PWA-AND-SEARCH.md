@@ -17,7 +17,9 @@ The browser creates 192, 512, and 180 pixel PNG versions. They are stored in the
 
 ## PWA configuration
 
-Open **Settings → Progressive web app** to configure installation, installed app name, short home screen name, description, theme colour, launch background colour, display mode, and orientation. Click **Save settings** to apply changes. Browser and OS support determines the actual display/orientation used.
+The installed app name automatically follows **Settings → Identity → System name**. Its short home-screen label follows **Short organisation name**. There are no separate PWA name fields to keep in sync. The manifest, application metadata, and Apple home-screen title read the same identity values. Existing legacy PWA name rows in D1 are ignored.
+
+Open **Settings → Progressive web app** to configure installation, description, theme colour, launch background colour, display mode, and orientation. Click **Save settings** to apply changes. Close any already-open installation dialog, refresh the site, and install again to pick up the latest name. Browser and OS support determines the actual display/orientation used.
 
 The manifest is at `/manifest.webmanifest`. Its fixed start URL is `/dashboard`; signed-out users pass through the normal Google login. Scope and app ID are `/`. The manifest includes 192/512 PNG icons, maskable icons, and shortcuts to Dashboard, Assets, and Search. Apple touch metadata uses a 180 pixel icon. The default icon is included in the repository.
 

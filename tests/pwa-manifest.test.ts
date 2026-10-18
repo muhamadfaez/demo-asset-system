@@ -3,10 +3,10 @@ const { settings } = vi.hoisted(() => ({ settings: vi.fn() }));
 vi.mock("@/lib/settings", () => ({ getLoginSettings: settings }));
 import { GET } from "@/app/manifest.webmanifest/route";
 
-beforeEach(() => settings.mockResolvedValue({ pwaEnabled: "true", pwaName: "Campus Assets", pwaShortName: "Assets", pwaDescription: "Campus register", pwaDisplay: "standalone", pwaOrientation: "portrait", pwaThemeColor: "#123456", pwaBackgroundColor: "#ffffff", appIconVersion: "123" }));
+beforeEach(() => settings.mockResolvedValue({ pwaEnabled: "true", systemName: "Campus Assets", organisationName: "Assets", pwaName: "Old app name", pwaShortName: "Old short name", pwaDescription: "Campus register", pwaDisplay: "standalone", pwaOrientation: "portrait", pwaThemeColor: "#123456", pwaBackgroundColor: "#ffffff", appIconVersion: "123" }));
 
 describe("installable app manifest", () => {
-  it("publishes configured identity, launch behaviour, and versioned PNG icons", async () => {
+  it("uses the current system identity even when legacy PWA names differ", async () => {
     const response = await GET();
     const manifest = await response.json();
     expect(response.headers.get("Content-Type")).toBe("application/manifest+json");

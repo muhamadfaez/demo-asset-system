@@ -11,9 +11,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: settings.systemName,
     description: settings.pwaDescription,
-    applicationName: settings.pwaName,
+    applicationName: settings.systemName,
     manifest: settings.pwaEnabled === "true" ? "/manifest.webmanifest" : undefined,
-    appleWebApp: { capable: settings.pwaEnabled === "true", title: settings.pwaShortName, statusBarStyle: "default" },
+    appleWebApp: { capable: settings.pwaEnabled === "true", title: settings.organisationName, statusBarStyle: "default" },
     icons: { icon: [{ url: appIconUrl(192, settings.appIconVersion), type: "image/png" }], apple: [{ url: appIconUrl(180, settings.appIconVersion), sizes: "180x180", type: "image/png" }] }
   };
 }

@@ -8,8 +8,8 @@ export async function GET() {
   if (settings.pwaEnabled !== "true") return new Response("App installation is disabled", { status: 404, headers: { "Cache-Control": "no-store" } });
   return Response.json({
     id: "/",
-    name: settings.pwaName,
-    short_name: settings.pwaShortName,
+    name: settings.systemName,
+    short_name: settings.organisationName,
     description: settings.pwaDescription,
     lang: "en",
     start_url: "/dashboard",

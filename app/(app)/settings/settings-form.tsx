@@ -28,8 +28,7 @@ export function SettingsForm({ settings }: { settings: SystemSettings }) {
 
       <SettingsSection icon={Globe2} title="Progressive web app" description="Control the name, colours, and display of the app installed on phones and computers.">
         <SelectField name="pwaEnabled" label="App installation" defaultValue={settings.pwaEnabled} options={[["true", "Enabled"], ["false", "Disabled"]]} error={state.errors?.pwaEnabled?.[0]} />
-        <Field name="pwaName" label="Installed app name" defaultValue={settings.pwaName} error={state.errors?.pwaName?.[0]} />
-        <Field name="pwaShortName" label="Home screen name" defaultValue={settings.pwaShortName} error={state.errors?.pwaShortName?.[0]} />
+        <p className="text-sm text-slate-600 md:col-span-2">The installed app automatically uses the System name above. Its home-screen label uses the Short organisation name. Save settings to update both.</p>
         <Field name="pwaDescription" label="App description" defaultValue={settings.pwaDescription} error={state.errors?.pwaDescription?.[0]} />
         <Field name="pwaThemeColor" type="color" label="Theme colour" defaultValue={settings.pwaThemeColor} error={state.errors?.pwaThemeColor?.[0]} />
         <Field name="pwaBackgroundColor" type="color" label="Launch background colour" defaultValue={settings.pwaBackgroundColor} error={state.errors?.pwaBackgroundColor?.[0]} />

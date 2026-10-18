@@ -85,8 +85,6 @@ export const systemSettingsSchema = z.object({
   borrowingPrefix: prefixSchema,
   maxBorrowingDays: z.coerce.number().int().min(1, "Minimum is 1 day").max(365, "Maximum is 365 days"),
   pwaEnabled: z.enum(["true", "false"]),
-  pwaName: z.string().trim().min(2).max(100),
-  pwaShortName: z.string().trim().min(2).max(30),
   pwaDescription: z.string().trim().min(2).max(200),
   pwaThemeColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hex colour"),
   pwaBackgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hex colour"),
