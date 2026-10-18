@@ -79,6 +79,32 @@ beforeEach(() => {
   });
 });
 describe("asset API safeguards", () => {
+  it("preserves the stored custodian when the simplified edit form omits the field", async () => {
+    const existing = await db.asset.findUnique();
+    db.asset.findUnique.mockResolvedValue({
+      ...existing,
+      custodianId: "existing-custodian",
+    });
+    const response = await PATCH(request("PATCH", { ...base, id: "existing" }));
+    expect(response.status).toBe(200);
+    expect(db.asset.update.mock.calls[0][0].data.custodianId).toBe(
+      "existing-custodian",
+    );
+    expect(db.user.findFirst).not.toHaveBeenCalled();
+  });
+  it("still honours an explicit custodian clear through the API", async () => {
+    const existing = await db.asset.findUnique();
+    db.asset.findUnique.mockResolvedValue({
+      ...existing,
+      custodianId: "existing-custodian",
+    });
+    const response = await PATCH(
+      request("PATCH", { ...base, id: "existing", custodianId: "" }),
+    );
+    expect(response.status).toBe(200);
+    expect(db.asset.update.mock.calls[0][0].data.custodianId).toBeNull();
+  });
+
   it("generates tags and derives location parents from server records", async () => {
     const r = await POST(
       request("POST", {

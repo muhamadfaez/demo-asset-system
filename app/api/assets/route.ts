@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
   if (!session?.user || !can(session.user, "asset:read"))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const q = request.nextUrl.searchParams.get("q") ?? "";
-  const where = { AND: [assetScopeFor(session.user), await assetSearchFilter(q)] };
+  const where = {
+    AND: [assetScopeFor(session.user), await assetSearchFilter(q)],
+  };
   const assets =
     session.user.role === "USER"
       ? await prisma.asset.findMany({
@@ -282,6 +284,10 @@ export async function PATCH(request: NextRequest) {
       data: {
         tagNumber: existing.tagNumber,
         ...extendedData(parsed.data),
+        // Simplified forms omit custody; do not clear the stored accountable person.
+        ...(!Object.hasOwn(body, "custodianId")
+          ? { custodianId: existing.custodianId }
+          : {}),
         name: parsed.data.name,
         serialNumber: parsed.data.serialNumber || null,
         description: parsed.data.description || null,

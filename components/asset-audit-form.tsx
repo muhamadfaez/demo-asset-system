@@ -362,11 +362,6 @@ export function AssetAuditForm({
               }
             />
           </label>
-          <UserAutocomplete
-            name="custodianId"
-            label="Custodian (accountable person)"
-            initialUser={asset?.custodian}
-          />
           {workflowOwned ? (
             <>
               <input
