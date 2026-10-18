@@ -2,6 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "demo1",
   "keep_vars": true,
+  "vars": {
+    "SUPERADMIN_EMAIL": "muhamadfaez@iium.edu.my"
+  },
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-02",
   "compatibility_flags": ["nodejs_compat"],
