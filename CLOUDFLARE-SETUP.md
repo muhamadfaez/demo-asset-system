@@ -60,7 +60,7 @@ Edit `wrangler.jsonc` in your fork or deployment branch. Change `name`, `SUPERAD
   "vars": {
     "SUPERADMIN_EMAIL": "admin@iium.edu.my"
   },
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "compatibility_date": "2026-08-02",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -151,7 +151,7 @@ For this remote D1 deployment, setting only a `PERMITTED_EMAIL_DOMAIN` environme
 | Deploy command | `npx wrangler deploy` |
 | Build variable `NODE_VERSION` | `24` |
 
-`npm run build` generates Prisma, builds Next.js, and automatically runs `postbuild` to produce `.open-next/worker.js`. The deploy command uploads that output. Choose/create a build API token with access to the Worker and D1 in the destination account when prompted.
+`npm run build` generates Prisma and styles, then builds the native Worker application and static page shells. The production entry point is `worker.ts`; deploy the Worker and assets together. Choose/create a build API token with access to the Worker and D1 in the destination account when prompted.
 
 6. Start the deployment and wait for success.
 7. Copy the actual HTTPS Worker URL from **Visit** or **Domains & Routes**. Example: `https://my-asset-system.your-subdomain.workers.dev`.
@@ -279,11 +279,9 @@ Expected: `DEMO-001` through `DEMO-010`. Refresh Assets and the borrowing, trans
 
 ### Workers Free CPU allowance
 
-Workers Free has a 10 ms CPU allowance per request. This application performs Next.js server rendering, authentication, and Prisma database work; successful builds and occasional successful reloads do not prove it will stay within that allowance. In the live installation, Error 1102 was confirmed with `exceededCpu` at about 11 ms, including requests for prefetched pages.
+Workers Free has a 10 ms CPU allowance per request. Production now serves static page shells with browser rendering and authenticated native D1 endpoints, including the existing Google authentication and workflow logic. Next SSR and Prisma's query compiler are kept off the production request path. PDF/CSV/QR generation runs in the browser.
 
-The code disables background page prefetching, reuses date formatters, reads public branding directly through D1, and pages the borrowing queue to reduce work. These optimizations do not increase Cloudflare's hard limit. For reliable hosting when requests still exceed it, enable Workers Paid in the destination account and configure a suitable per-request CPU limit there. This is an account/billing change the owner must perform; do not add a higher `cpu_ms` to a Free installation expecting it to lift the plan limit. See [Cloudflare CPU limits](https://developers.cloudflare.com/workers/platform/limits/).
-
-If a resource-limit failure returns HTML to a borrowing action, the app now displays a retry message instead of attempting to parse that HTML as JSON. If a navigation fails transiently, reload after the deployment finishes; repeated Error 1102 still requires resolving the CPU allowance.
+See [WORKERS-FREE-TIER.md](WORKERS-FREE-TIER.md) for the build, indexes, validation and limitations. Keep `worker.ts` as the entry point. Private responses are never cached. A daily D1 allowance error returns a clear 503 with the next reset time; the allowance resets at midnight UTC (08:00 Malaysia time). Do not set a higher `cpu_ms` on Free expecting it to change the plan limit, and do not run large repeated load tests against the account's daily D1 allowance.
 
 | Symptom | Check and fix |
 |---|---|

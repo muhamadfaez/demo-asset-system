@@ -81,3 +81,7 @@ For SQLite, back up `prisma/dev.db`. For Neon/PostgreSQL, use scheduled `pg_dump
 ## Asset audit records
 
 See [ASSET-AUDIT-CHANGES.md](ASSET-AUDIT-CHANGES.md) for the file-by-file changes, migration and rollback commands, attachment limits, validation rules and implementation decisions. Existing databases must apply the additive SQL migration once; `db push` alone does not install the audit/verification triggers.
+
+## Workers Free production architecture
+
+See [WORKERS-FREE-TIER.md](WORKERS-FREE-TIER.md) for static page shells, native D1 APIs, browser exports, required indexes and validation limits. Production uses `worker.ts`; Next remains available for local development.

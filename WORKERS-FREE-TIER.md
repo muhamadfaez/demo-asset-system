@@ -1,46 +1,60 @@
-# Transfers on Workers Free
+# Application on Workers Free
 
-## Why the request path changed
+## Production request path
 
-Cloudflare Workers Free allows 10 ms of CPU per request. Error 1102 means a CPU or memory limit was exceeded. The previous `/transfers` request executed Next server rendering, Auth.js and Prisma's query compiler, including nested relations and up to 100 rendered transfer cards. Across the production Worker, Cloudflare reported 43 `exceededResources` invocations before this release. Those aggregate metrics do not identify every affected route.
+All application pages now use public static shells and browser React rendering. Flat routes are served directly by Cloudflare Assets; dynamic asset detail/edit and document URLs serve the same public shell through the small Worker. No shell contains accounts, assets, sessions or authenticated records.
 
-## Production architecture
+`worker.ts` first handles the existing native transfer/search/logout routes, then loads `.edge-app/app-handler.mjs`. Production requests do not load Next SSR, OpenNext rendering, or Prisma's query compiler. Next remains the local development framework and stylesheet build input.
 
-- `/transfers` is a public static HTML **shell** with a content-addressed browser bundle. Cloudflare serves it directly from static assets, without invoking Next. It contains no accounts, sessions or transfer records.
-- `GET /api/edge/transfers` validates the existing Auth.js database session, checks the current account status and role, and reads a minimal DTO with parameterized D1 SQL. No authenticated responses are cached (`private, no-store`, `Vary: Cookie`). The browser redirects invalid or inactive sessions to the existing account pages.
-- History is paginated at 20 rows, with exact scoped summary counts. Asset and room choices are capped at 100 with search fields. Search results and page changes cancel superseded requests; there is no polling or automatic mutation retry.
-- `POST/PATCH /api/workflows/transfers`, `GET /api/users/search` and `POST /api/edge/logout` bypass Next and Prisma through `edge/router.ts`. Mutations require a same-origin request and an active session, validate input, enforce requester/department scope, and cap JSON bodies at 8 KiB.
-- Transfer decisions use D1's transactional `batch`, conditional writes and a unique audit marker. Asset changes, assignments, audit records and notifications commit together. Replays and stale requests return 409 without repeating side effects. Accountable `Asset.custodianId` is preserved.
-- `worker.ts` loads the existing OpenNext handler only for other routes. Existing Next/Auth.js functionality remains available. Navigation into transfers uses a full document request; older Next clients receiving static HTML also fall back to document navigation.
-- `components/transfers-view.tsx` and the existing action forms are shared between the browser entry and local Next route. Small build-only navigation/image/logout adapters let the static screen reuse the application's navigation without a Next server runtime. Native images avoid invoking Next image optimization on this screen.
+The native application reuses the existing server page functions, permission checks, validation, action functions and API handlers. A build-only JSX adapter produces compact view descriptions instead of server-rendered HTML. The browser decodes those descriptions into the original UI and explicitly registered client components. Forms and scanner components load as separate browser chunks. Component/action references come from a build-time allowlist; there is no public model-query or arbitrary SQL endpoint.
 
-Other application pages still use Next server rendering. This release removes the expensive request path for transfers and user search; it does not guarantee that every other route fits a 10 ms CPU budget. Free-tier daily Worker and D1 quotas still apply.
+`edge/d1-repository.ts` translates the application's supported query vocabulary into parameterized D1 statements. Relations use bounded JSON subqueries, without an N+1 query loop. The generated `edge/models.json` contains schema metadata only. Unsupported operations fail rather than falling back to a compiler. Writes hydrate dates/booleans, retain audit triggers, and use compare-and-swap snapshots. The existing borrowing transaction and settings upsert array use transactional D1 batches with conflict guards.
 
-## Build and database setup
+## Authentication and data safety
 
-`npm run build` runs Next/OpenNext, then `scripts/build-static-transfers.mjs`. The final step places `transfers.html`, hashed JavaScript and static headers in `.open-next/assets`. The page uses the shared compiled stylesheet, including the native date/time containment rules. Tailwind scans `static-transfers` as well as the existing source directories.
+- The existing Google provider, domain restriction, account callbacks and database sessions are retained, using Auth.js core without Next. The adapter reads/writes through the native repository. Existing secure session cookies remain valid.
+- Every private page/action/API validates the database session and current account status. Existing functions still enforce role, department, asset and requester permissions. Public branding and account-status screens expose no private data.
+- Private responses use `private, no-store` and `Vary: Cookie`. No authenticated HTML, DTO, file or session is stored in the service-worker cache.
+- Mutations require same-origin requests. Streamed body limits also apply when Content-Length is absent: 64 KiB for ordinary actions/JSON, 2 MiB for attachment envelopes and 8 MiB only for Superadmin settings uploads. Existing per-field/file validation remains in place.
+- Logout revokes the current database session when available and always clears the browser cookie, including during a database outage.
+- D1's daily quota response becomes a clear 503 with the next reset time and Retry-After. No failed mutation is automatically replayed.
 
-After a successful build, deploy with `npx opennextjs-cloudflare deploy`. Deploy the whole assets/Worker output together. Wrangler's entry point must remain `worker.ts`; default asset-first routing must remain enabled so `/transfers` does not invoke server rendering.
+## Bounded work
 
-Apply the read-performance indexes once to an existing production database:
+Main asset, user, maintenance, incident, verification, disposal, report, notification and audit lists use 25-record pages. Borrowing and transfer pages retain their 20-record pagination. User summary counts use a separate aggregate, rather than counting the visible page. Reference choices are bounded at 2,000 records per collection; exceptionally large reference datasets will need an asynchronous lookup control before exceeding that size. Nested histories are bounded at 100 rows.
+
+CSV/PDF exports fetch authorized asset data in 100-record chunks and generate files in the browser. PDFs use multiple pages. QR PNG generation also runs in the browser; the Worker only validates access to the asset. This avoids CPU-heavy document/image generation on a 10 ms Worker request budget.
+
+D1 constraints are handled explicitly: at most 100 SQL bindings per statement, JSON construction in groups of at most 31 function arguments, JSON-array parameters for IN filters, chunked bulk notifications, and literal substring search rather than long LIKE patterns. Additional indexes reduce repeated scans of assignments, borrowing, maintenance, verification, incidents and documents.
+
+## Build and deployment
+
+```powershell
+npm run build
+npx opennextjs-cloudflare deploy
+```
+
+The postbuild builds OpenNext, the transfer shell, schema metadata and the native application/browser shells. Keep `worker.ts` as Wrangler's entry point and asset-first routing enabled. Deploy the Worker and assets together. Do not deploy `.open-next/worker.js` as the production entry point: that restores the old SSR path.
+
+Apply these additive performance migrations once to an existing database:
 
 ```powershell
 npx wrangler d1 execute asset-management --remote --file prisma/migrations/202610190001_worker_transfer_indexes/migration.sql
+npx wrangler d1 execute asset-management --remote --file prisma/migrations/202610190002_app_query_indexes/migration.sql
 ```
 
-This migration only creates indexes, with `IF NOT EXISTS`. It changes no columns or records. The matching `rollback.sql` removes only these indexes. Do not rerun the baseline or seed a production database. Existing audit migrations remain prerequisites.
+These migrations create indexes only, using IF NOT EXISTS; they change no records or columns. Each has a rollback file that removes only its indexes. Existing audit/verification migrations remain prerequisites. Do not rerun the baseline or seed production.
 
-Local `npm run dev` uses the Next route and existing Prisma handlers. Use the normal Cloudflare preview workflow to exercise the production Worker routing; `npm test` exercises the native router against a disposable SQLite database with the real baseline, audit triggers and performance indexes.
+## Verification and limits
 
-## Validation on 19 October 2026
+The automated suite exercises the native application against disposable SQLite databases with the actual baseline, audit triggers and indexes. It covers every page pattern, three roles, scoped reads, create/edit forms, settings, reference data, account changes, notifications, borrowing, maintenance, incidents, verification, exports, QR authorization and Auth.js session/CSRF/provider endpoints. Browser component rendering is additionally checked through a test-only React stream renderer; production does not import that renderer.
 
-- 100 tests passed across 19 files, including 12 native-path tests covering sessions, permissions, scoped reads, query indexing, malformed/oversized bodies, stale destinations, replay protection, atomic rollback and logout.
-- Production build, types and lint passed with the three pre-existing component warnings and existing Prisma/OpenNext build notices.
-- A separate temporary Cloudflare Worker/D1 database contained only synthetic accounts and data: 1,000 historical transfers, then 120 extra assets/rooms and 1,000-character reasons. No production session was impersonated or fabricated.
-- 73 live synthetic requests passed: 70 authenticated paginated reads, submission (201), approval (200), and replay rejection (409). Larger responses contained 100 asset choices, 100 room choices and 20 transfers (about 63 KiB).
-- Cloudflare's adaptive invocation metrics reported CPU p50 **1.788 ms**, p99 **5.140 ms**, and **0 runtime errors** for those 73 requests, before adding the performance indexes. These are measurements of this test, not a guarantee for every future request or traffic level.
-- Temporary test Worker and database were deleted. Results and metric snapshots are kept locally under ignored `.wrangler/backups/perf/`.
-- Live production checks confirmed static transfers HTML, immutable JavaScript, protected/no-store native APIs, existing login/protected-asset fallback and service-worker headers.
-- Interactive signed-in/mobile visual verification remains unavailable because the session has no connected browser surface.
+The earlier transfer-only release passed 73 actual D1 requests with CPU p50 1.788 ms and p99 5.140 ms. That result is not a measurement of the expanded application.
 
-Sources: [Cloudflare limits](https://developers.cloudflare.com/workers/platform/limits/), [Error 1102](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1102/), [static asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/), [OpenNext custom Workers](https://opennext.js.org/cloudflare/howtos/custom-worker).
+During this migration, the Cloudflare account reached its daily D1 read allowance during synthetic testing. Direct live D1 validation of the expanded application is therefore pending the next midnight-UTC reset (08:00 Malaysia time). The full application is also tested with recorded, synthetic query responses on a temporary Worker **without a D1 binding**, to check Worker rendering CPU without consuming more database reads. Those replay measurements exclude real D1 SDK/database overhead and must not be reported as end-to-end D1 performance.
+
+No production session was impersonated or fabricated. Temporary synthetic Workers/databases and fixture captures are separate from production and are removed after testing. Diagnostic captures remain under ignored `.wrangler/backups/app-perf/`. Interactive signed-in/mobile visual testing remains unverified because there is no connected browser surface.
+
+Workers Free and D1 still have finite CPU, request, read, write and storage quotas. Static rendering and indexes reduce usage; they cannot remove those platform limits. Monitor real D1 reads after reset and avoid large repeated load tests on the production account's free allowance.
+
+Sources: [Workers limits](https://developers.cloudflare.com/workers/platform/limits/), [D1 limits](https://developers.cloudflare.com/d1/platform/limits/), [D1 pricing and quotas](https://developers.cloudflare.com/d1/platform/pricing/), [static asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/).

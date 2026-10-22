@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "prisma generate && next dev",
     "build": "prisma generate && next build",
-    "postbuild": "opennextjs-cloudflare build --skipNextBuild && node scripts/build-static-transfers.mjs",
+    "postbuild": "opennextjs-cloudflare build --skipNextBuild && node scripts/build-static-transfers.mjs && node scripts/generate-edge-models.mjs && node scripts/build-static-app.mjs",
     "build:worker": "npm run build",
     "preview": "npm run build && opennextjs-cloudflare preview",
     "deploy": "npm run build && opennextjs-cloudflare deploy",
@@ -43,6 +43,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@prisma/internals": "6.19.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.7",
     "@types/papaparse": "^5.3.15",

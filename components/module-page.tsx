@@ -136,6 +136,8 @@ export async function AssetsPage({ user, searchParams }: { user: CurrentUser; se
     take: 100
   });
   const visible = user.role === RoleName.USER ? [...assets].sort((a, b) => Number(b.assignedUserId === user.id) - Number(a.assignedUserId === user.id)) : assets;
+  // The browser table receives only the fields exposed by the personal register.
+  const tableAssets = user.role === RoleName.USER ? visible.map(({id,name,tagNumber,status,condition,borrowable,assignedUserId,category,department,room}) => ({id,name,tagNumber,status,condition,borrowable,assignedUserId,category,department,room})) : visible;
   const canRegister = can(user, "asset:create");
   const title = user.role === RoleName.USER ? "My Assets" : user.role === RoleName.ASSET_LIAISON ? "Department Asset Register" : "Asset Register";
   const subtitle = user.role === RoleName.USER ? "Assets currently or previously assigned to your account, with current assignments shown first." : user.role === RoleName.ASSET_LIAISON ? "Assets restricted to your assigned department." : "Search, filter, approve, archive, duplicate, export, and inspect asset records.";
@@ -143,7 +145,7 @@ export async function AssetsPage({ user, searchParams }: { user: CurrentUser; se
     <div className="space-y-5">
       <Hero title={title} subtitle={subtitle} action={canRegister ? <Link prefetch={false} className="rounded-lg bg-iium-green px-4 py-2.5 text-sm font-semibold text-white shadow-lift hover:bg-iium-deep" href="/assets/new">Register Asset</Link> : undefined} />
       <FilterBar q={q} status={status} />
-      <AssetTable assets={visible} personal={user.role === RoleName.USER} currentUserId={user.id} />
+      <AssetTable assets={tableAssets as typeof visible} personal={user.role === RoleName.USER} currentUserId={user.id} />
     </div>
   );
 }
@@ -180,7 +182,7 @@ export async function AssetFormPage({ user, initialBarcode = "" }: { user: Curre
   );
 }
 
-export async function AssetDetailPage({ id, user }: { id: string; user: CurrentUser }) {
+export async function AssetDetailPage({ id, user, historyPage = 1 }: { id: string; user: CurrentUser; historyPage?: number }) {
   const [asset, settings] = await Promise.all([
     prisma.asset.findFirst({
       where: { AND: [{ id }, assetScopeFor(user)] },
@@ -191,13 +193,8 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
         department: true,
         assignedUser: { include: { department: true } },
         room: { include: { floor: { include: { building: true } } } },
-        assignments: { include: { assignedUser: { include: { department: true } } }, orderBy: { assignmentDate: "desc" } },
-        borrowings: true,
-        maintenance: true,
-        transfers: true,
-        verifications: true,
-        incidents: true,
-        disposals: true
+        assignments: { include: { assignedUser: { include: { department: true } } }, orderBy: [{ assignmentDate: "desc" }, { id: "desc" }], take: user.role === RoleName.USER ? 0 : 25, skip: (historyPage - 1) * 25 },
+        _count: { select: { assignments: true, borrowings: true, maintenance: true, transfers: true, verifications: true, incidents: true, disposals: true } }
       }
     }),
     getSystemSettings()
@@ -208,9 +205,15 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
     select: { id: true, name: true }
   });
   const assignedByNames = new Map(assignedByUsers.map((assignedBy) => [assignedBy.id, assignedBy.name]));
+  const personalHistory = user.role === RoleName.USER ? await Promise.all([
+    prisma.assetAssignment.count({ where: { assetId: id, assignedUserId: user.id } }),
+    prisma.borrowingRequest.count({ where: { assetId: id, requesterId: user.id } }),
+    prisma.maintenanceRequest.count({ where: { assetId: id, reportedById: user.id } }),
+    prisma.assetIncident.count({ where: { assetId: id, reportedById: user.id } })
+  ]) : [0,0,0,0];
   const historyRows: Array<[string, number]> = user.role === RoleName.USER
-    ? [["My assignments", asset.assignments.filter((item) => item.assignedUserId === user.id).length], ["My borrowings", asset.borrowings.filter((item) => item.requesterId === user.id).length], ["My maintenance reports", asset.maintenance.filter((item) => item.reportedById === user.id).length], ["My incident reports", asset.incidents.filter((item) => item.reportedById === user.id).length]]
-    : [["Assignments", asset.assignments.length], ["Borrowings", asset.borrowings.length], ["Transfers", asset.transfers.length], ["Maintenance", asset.maintenance.length], ["Verification checks", asset.verifications.length], ["Incidents", asset.incidents.length], ["Disposals", asset.disposals.length]];
+    ? [["My assignments", personalHistory[0]], ["My borrowings", personalHistory[1]], ["My maintenance reports", personalHistory[2]], ["My incident reports", personalHistory[3]]]
+    : [["Assignments", asset._count.assignments], ["Borrowings", asset._count.borrowings], ["Transfers", asset._count.transfers], ["Maintenance", asset._count.maintenance], ["Verification checks", asset._count.verifications], ["Incidents", asset._count.incidents], ["Disposals", asset._count.disposals]];
   const recordRows: Array<[string, string | number]> = [["Status", asset.status], ["Condition", asset.condition], ["Borrowable", asset.borrowable ? "Yes" : "No"], ["Serial", asset.serialNumber ?? "-"], ...(user.role === RoleName.USER ? [] : [["Assigned to", asset.assignedUser ? `${asset.assignedUser.name} (${asset.assignedUser.staffNo ?? asset.assignedUser.email})` : "Unassigned"] as [string, string], ["Value", `${settings.currency} ${asset.acquisitionCost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`] as [string, string]]), ["Location", `${asset.room.floor.building.name} / ${asset.room.name}`]];
   return (
     <div className="space-y-5">
@@ -237,6 +240,7 @@ export async function AssetDetailPage({ id, user }: { id: string; user: CurrentU
        <Card className="lg:col-span-2"><details><summary className="cursor-pointer font-semibold">Supporting Records</summary><AttachmentManager assetId={asset.id} initialDocuments={asset.documents} readOnly={!can(user,"asset:update")} /></details></Card>
       </section>}
       {user.role !== RoleName.USER && (asset.assignments.length ? <DataTable title="Assignment History" headers={["Date", "Assigned to", "User ID", "Department", "Assigned by", "Action"]} rows={asset.assignments.map((assignment) => [formatSystemDate(assignment.assignmentDate, settings.timeZone, true), assignment.assignedUser?.name ?? "Unassigned", assignment.assignedUser?.staffNo ?? assignment.assignedUserId ?? "-", assignment.assignedUser?.department?.name ?? "-", assignedByNames.get(assignment.assignedById) ?? "Unknown user", assignment.purpose])} /> : <EmptyState title="No assignment history" body="Assignment and removal actions will appear here for audit purposes." />)}
+      {user.role !== RoleName.USER && asset._count.assignments > 25 && <nav aria-label="Assignment history pages" className="flex items-center justify-end gap-3 text-sm text-iium-deep"><span>History page {historyPage} of {Math.ceil(asset._count.assignments / 25)}</span>{historyPage > 1 && <Link prefetch={false} href={`/assets/${asset.id}?p=${historyPage - 1}`} className="rounded-lg border bg-white px-4 py-2">Previous</Link>}{historyPage * 25 < asset._count.assignments && <Link prefetch={false} href={`/assets/${asset.id}?p=${historyPage + 1}`} className="rounded-lg border bg-white px-4 py-2">Next</Link>}</nav>}
     </div>
   );
 }

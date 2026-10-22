@@ -17,8 +17,8 @@ export async function transferData(db: Database, user: EdgeUser, url: URL) {
   const page =
     Math.min(100000, Math.max(0, Number(url.searchParams.get("page")) || 0)) |
     0;
-  const search = `%${(url.searchParams.get("q") ?? "").trim().slice(0, 100)}%`;
-  const roomSearch = `%${(url.searchParams.get("room") ?? "").trim().slice(0, 100)}%`;
+  const search = (url.searchParams.get("q") ?? "").trim().slice(0,100);
+  const roomSearch = (url.searchParams.get("room") ?? "").trim().slice(0,100);
   const assetScope = scope(user);
   const history =
     user.role === "USER"
@@ -63,7 +63,7 @@ export async function transferData(db: Database, user: EdgeUser, url: URL) {
       u.id AS userId, u.name AS userName, u.email, u.staffNo, d.name AS departmentName
       FROM Asset a JOIN Room r ON r.id = a.roomId JOIN Floor f ON f.id = r.floorId JOIN Building b ON b.id = f.buildingId
       LEFT JOIN User u ON u.id = a.assignedUserId LEFT JOIN Department d ON d.id = u.departmentId
-      WHERE ${eligible} AND (a.name LIKE ? OR a.tagNumber LIKE ?) ORDER BY a.name, a.id LIMIT 100`,
+      WHERE ${eligible} AND (instr(lower(a.name),lower(?))>0 OR instr(lower(a.tagNumber),lower(?))>0) ORDER BY a.name, a.id LIMIT 100`,
       )
       .bind(...assetScope.values, search, search),
     db
@@ -72,7 +72,7 @@ export async function transferData(db: Database, user: EdgeUser, url: URL) {
     db
       .prepare(
         `SELECT r.id, r.name, r.code, b.name AS buildingName FROM Room r JOIN Floor f ON f.id = r.floorId JOIN Building b ON b.id = f.buildingId
-      WHERE r.active = 1 AND f.active = 1 AND b.active = 1 AND (r.name LIKE ? OR r.code LIKE ? OR b.name LIKE ?)
+      WHERE r.active = 1 AND f.active = 1 AND b.active = 1 AND (instr(lower(r.name),lower(?))>0 OR instr(lower(r.code),lower(?))>0 OR instr(lower(b.name),lower(?))>0)
       ORDER BY r.name, r.id LIMIT 100`,
       )
       .bind(roomSearch, roomSearch, roomSearch),

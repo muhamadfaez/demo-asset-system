@@ -2,10 +2,23 @@ import type { AnchorHTMLAttributes, ImgHTMLAttributes } from "react";
 
 // This entry is a browser application, outside the Next router. Its shared UI
 // links use document navigation and refresh only refetches the protected DTO.
+let navigating = false;
 export function useRouter() {
   return {
+    push(path: string) {
+      navigating = true;
+      window.location.assign(path);
+    },
+    replace(path: string) {
+      navigating = true;
+      window.location.replace(path);
+    },
+    back() {
+      navigating = true;
+      window.history.back();
+    },
     refresh() {
-      window.dispatchEvent(new Event("transfers:refresh"));
+      if (!navigating) window.dispatchEvent(new Event("transfers:refresh"));
     },
   };
 }

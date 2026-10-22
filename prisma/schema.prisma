@@ -375,6 +375,8 @@ model AssetDocument {
   size      Int
   createdAt DateTime @default(now())
   asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, createdAt])
 }
 
 model AssetAssignment {
@@ -392,6 +394,9 @@ model AssetAssignment {
   createdAt        DateTime  @default(now())
   asset            Asset     @relation(fields: [assetId], references: [id])
   assignedUser     User?     @relation("AssignmentUser", fields: [assignedUserId], references: [id])
+
+  @@index([assignedUserId, assetId])
+  @@index([assetId, assignmentDate])
 }
 
 model BorrowingRequest {
@@ -416,6 +421,10 @@ model BorrowingRequest {
   asset            Asset         @relation(fields: [assetId], references: [id])
 
   @@index([assetId, startDate, expectedReturnAt, status])
+
+  @@index([requesterId, createdAt])
+  @@index([assetId, requesterId, status])
+  @@index([assetId, status, startDate, expectedReturnAt])
 }
 
 model AssetTransfer {
@@ -464,6 +473,9 @@ model MaintenanceRequest {
   nextScheduledAt DateTime?
   createdAt       DateTime      @default(now())
   asset           Asset         @relation(fields: [assetId], references: [id])
+
+  @@index([assetId, status])
+  @@index([reportedById, createdAt])
 }
 
 model VerificationCampaign {
@@ -489,6 +501,8 @@ model AssetVerification {
   checkedAt   DateTime             @default(now())
   campaign    VerificationCampaign @relation(fields: [campaignId], references: [id])
   asset       Asset                @relation(fields: [assetId], references: [id])
+
+  @@index([assetId, checkedAt])
 }
 
 model AssetIncident {
@@ -507,6 +521,8 @@ model AssetIncident {
   status             String        @default("Reported")
   createdAt          DateTime      @default(now())
   asset              Asset         @relation(fields: [assetId], references: [id])
+
+  @@index([reportedById, createdAt])
 }
 
 model DisposalRequest {

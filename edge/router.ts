@@ -1,3 +1,4 @@
+import { resourceError } from "./resource-error";
 import { authenticate, json, sameOrigin, sessionToken } from "./auth";
 import { searchUsers, transferData } from "./transfers-read";
 import { writeTransfer } from "./transfers-write";
@@ -19,13 +20,19 @@ export async function handleEdge(
   if (request.method !== "GET" && !sameOrigin(request))
     return json({ error: "Invalid request origin" }, 403);
   try {
-    const user = await authenticate(request, env.DB);
-    if (!user)
-      return json({ error: "Sign in to continue", redirect: "/login" }, 401);
     if (logout) {
-      await env.DB.prepare("DELETE FROM Session WHERE sessionToken=?")
-        .bind(sessionToken(request))
-        .all();
+      const token = sessionToken(request);
+      if (token) {
+        try {
+          await env.DB.prepare("DELETE FROM Session WHERE sessionToken=?")
+            .bind(token)
+            .all();
+        } catch {
+          console.error(
+            "[edge] Session revocation unavailable; clearing the browser cookie.",
+          );
+        }
+      }
       const response = json({ ok: true });
       const cookie =
         url.protocol === "https:"
@@ -37,6 +44,9 @@ export async function handleEdge(
       );
       return response;
     }
+    const user = await authenticate(request, env.DB);
+    if (!user)
+      return json({ error: "Sign in to continue", redirect: "/login" }, 401);
     if (user.status !== "ACTIVE")
       return json(
         {
@@ -57,6 +67,8 @@ export async function handleEdge(
       );
     return await writeTransfer(request, env.DB, user);
   } catch (error) {
+    const limited = resourceError(error);
+    if (limited) return limited;
     console.error(
       "[edge] Transfer request failed",
       error instanceof Error ? error.message : "Unknown database error",

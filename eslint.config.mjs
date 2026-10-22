@@ -8,6 +8,8 @@ const config = [
     ignores: [
       ".next/**",
       ".open-next/**",
+      ".edge-app/**",
+      ".wrangler/**",
       "node_modules/**",
       "presentation/**",
       "cloudflare-env.d.ts",

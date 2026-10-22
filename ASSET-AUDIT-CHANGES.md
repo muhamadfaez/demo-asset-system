@@ -152,3 +152,11 @@ Mobile refinement deployed as Worker version `400cd371-e145-4655-9163-14197a2f73
 - Added reversible indexes for pending-transfer checks, asset scope and unread notifications; no production records changed.
 - All 100 tests passed. Synthetic live testing of 73 requests against a separate Worker/database measured CPU p50 1.788 ms and p99 5.140 ms with no runtime errors; temporary resources were removed.
 - See `WORKERS-FREE-TIER.md` for architecture, deployment, validation and remaining scope. Other Next pages still require their own CPU-budget assessment.
+
+## Application-wide Workers Free migration: 19 October 2026
+
+- Extended static shells/browser rendering to all remaining page patterns and dynamic asset screens; production no longer loads Next SSR or Prisma's query compiler.
+- Reused existing page, action, validation and API modules through a build-time adapter and parameterized D1 repository. Retained secure sessions, role/department checks, audit triggers and transactional borrowing/settings writes.
+- Added 25-record pagination for larger lists, bounded query/body work, D1 SQL-limit handling, browser CSV/PDF/QR generation and eight further read-performance indexes. No production records or columns changed.
+- Added native API, permissions, workflow and actual browser-component render tests. Full signed-in live D1 validation is pending the daily read-limit reset after the account reached its allowance during synthetic testing.
+- See `WORKERS-FREE-TIER.md` for architecture and the distinction between SQLite tests, Worker replay CPU tests and actual live D1 tests.
